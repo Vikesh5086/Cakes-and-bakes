@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin – Cakes & Bakes</title>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet"/>
+
+<!-- Firebase SDK (compat only — no module imports) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyB_q1OByeEyYWnSGEUVlxnPGsLsoDrzxO8",
+  authDomain:        "cakes-and-bakes-7fcc0.firebaseapp.com",
+  projectId:         "cakes-and-bakes-7fcc0",
+  storageBucket:     "cakes-and-bakes-7fcc0.firebasestorage.app",
+  messagingSenderId: "899770261010",
+  appId:             "1:899770261010:web:7cff04a1b2e8ffc85dc2cb",
+  measurementId:     "G-6KZ0JPE0V4"
+};
+firebase.initializeApp(firebaseConfig);
+const db   = firebase.firestore();
+const auth = firebase.auth();
+</script>
+
+<style>
+:root{
+  --bg:#0a0704;--surface:#150e08;--surface2:#1e1409;
+  --gold:#c9973a;--gold-light:#e8c47a;--gold-dim:rgba(201,151,58,0.18);
+  --teal:#1a5c52;--teal-light:#2e8b7a;
+  --red:#c0392b;--green:#27ae60;--orange:#e67e22;--blue:#2980b9;
+  --text:#f0e6d6;--muted:rgba(240,230,214,0.5);--border:rgba(201,151,58,0.18);
+  --radius:14px;--card-shadow:0 4px 24px rgba(0,0,0,0.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-height:100vh}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:1.5rem;
+  background:radial-gradient(ellipse at center,#1a0e04 0%,#0a0704 70%);
+}
+.login-box{
+  width:100%;max-width:400px;background:var(--surface);
+  border:1px solid var(--border);border-radius:20px;
+  padding:2.5rem 2rem;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+.login-logo{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold-light);margin-bottom:0.3rem}
+.login-sub{color:var(--muted);font-size:0.82rem;margin-bottom:2rem;letter-spacing:0.05em}
+.login-box input{
+  width:100%;background:#0f0a05;border:1px solid var(--border);border-radius:10px;
+  padding:0.85rem 1rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.9rem;
+  margin-bottom:0.9rem;outline:none;transition:border 0.2s;
+}
+.login-box input:focus{border-color:var(--gold)}
+.btn-login{
+  width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  color:#1a0a02;border:none;border-radius:10px;padding:0.9rem;
+  font-family:'Jost',sans-serif;font-size:0.95rem;font-weight:700;
+  cursor:pointer;letter-spacing:0.06em;margin-top:0.3rem;transition:opacity 0.2s;
+}
+.btn-login:hover{opacity:0.88}
+.login-err{color:#e74c3c;font-size:0.82rem;margin-top:0.8rem;display:none}
+
+/* ── MAIN APP ── */
+#app{display:none}
+
+/* Top bar */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(10,7,4,0.95);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem 1.2rem;gap:0.8rem;
+}
+.topbar-title{font-family:'Playfair Display',serif;color:var(--gold-light);font-size:1.15rem;white-space:nowrap}
+.topbar-right{display:flex;align-items:center;gap:0.7rem}
+.btn-sm{
+  background:transparent;border:1px solid var(--border);border-radius:8px;
+  color:var(--muted);padding:0.4rem 0.8rem;font-family:'Jost',sans-serif;font-size:0.75rem;
+  cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.btn-sm:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Stats bar */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;
+  padding:0.8rem 1rem;background:var(--surface);border-bottom:1px solid var(--border);
+}
+.stat-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:0.7rem 0.5rem;text-align:center;
+}
+.stat-num{font-size:1.4rem;font-weight:700;color:var(--gold-light);line-height:1}
+.stat-lbl{font-size:0.62rem;color:var(--muted);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.08em}
+
+/* Tabs */
+.tabs{
+  display:flex;overflow-x:auto;gap:0;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:80px;padding:0.75rem 0.6rem;text-align:center;
+  font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;
+  transition:all 0.2s;white-space:nowrap;font-weight:500;
+}
+.tab.active{color:var(--gold-light);border-bottom-color:var(--gold)}
+
+/* Search bar */
+.search-bar{
+  padding:0.8rem 1rem;background:var(--surface);border-bottom:1px solid var(--border);
+}
+.search-bar input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:0.7rem 1rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;
+}
+.search-bar input:focus{border-color:var(--gold)}
+
+/* Orders list */
+#ordersContainer{padding:0.8rem 0.8rem 5rem;display:flex;flex-direction:column;gap:0.8rem}
+
+/* Order card */
+.order-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--card-shadow);transition:transform 0.15s;
+}
+.order-card:active{transform:scale(0.99)}
+
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem 1rem 0.6rem;gap:0.5rem;flex-wrap:wrap;
+}
+.order-id{font-size:0.72rem;color:var(--gold);letter-spacing:0.08em;font-weight:600}
+.order-time-badge{
+  font-size:0.7rem;background:var(--gold-dim);border:1px solid var(--border);
+  color:var(--gold-light);padding:0.2rem 0.6rem;border-radius:20px;white-space:nowrap;
+}
+
+.card-body{padding:0 1rem 0.6rem;display:grid;grid-template-columns:1fr auto;gap:0.5rem;align-items:start}
+.customer-name{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
+.customer-phone{font-size:0.8rem;color:var(--gold-light);text-decoration:none}
+.customer-phone:hover{text-decoration:underline}
+.cake-details{font-size:0.78rem;color:var(--muted);margin-top:0.3rem;line-height:1.7}
+.cake-details strong{color:var(--text)}
+
+.cake-img{
+  width:72px;height:72px;border-radius:10px;object-fit:cover;
+  border:2px solid var(--border);cursor:pointer;flex-shrink:0;
+}
+.no-img{
+  width:72px;height:72px;border-radius:10px;background:var(--surface2);
+  border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;flex-shrink:0;
+}
+
+.card-notes{
+  padding:0 1rem 0.6rem;font-size:0.76rem;color:var(--muted);
+  border-top:1px solid var(--border);padding-top:0.6rem;line-height:1.6;
+}
+
+/* Status & Payment row */
+.card-controls{
+  padding:0.7rem 1rem 0.9rem;border-top:1px solid var(--border);
+  display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
+}
+.status-select{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:0.45rem 0.6rem;font-family:'Jost',sans-serif;font-size:0.78rem;
+  cursor:pointer;outline:none;flex:1;min-width:130px;
+}
+.status-select:focus{border-color:var(--gold)}
+
+.payment-block{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;flex:1}
+.pay-input{
+  width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:0.42rem 0.6rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.8rem;
+  outline:none;
+}
+.pay-input:focus{border-color:var(--teal-light)}
+.pay-label{font-size:0.72rem;color:var(--muted)}
+
+.remaining-toggle{display:flex;align-items:center;gap:0.3rem;cursor:pointer;font-size:0.75rem;color:var(--muted)}
+.remaining-toggle input[type=checkbox]{accent-color:var(--teal-light);width:14px;height:14px;cursor:pointer}
+
+.btn-save{
+  background:linear-gradient(135deg,var(--teal),var(--teal-light));
+  color:#fff;border:none;border-radius:8px;padding:0.45rem 0.85rem;
+  font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:600;
+  cursor:pointer;letter-spacing:0.05em;transition:opacity 0.2s;white-space:nowrap;
+}
+.btn-save:hover{opacity:0.85}
+.btn-save:disabled{opacity:0.5;cursor:default}
+
+/* Status colours */
+.status-Pending{border-left:4px solid var(--orange)}
+.status-Baking{border-left:4px solid var(--blue)}
+.status-Ready{border-left:4px solid var(--green)}
+.status-Delivered{border-left:4px solid var(--muted)}
+
+.status-badge{
+  display:inline-block;font-size:0.68rem;font-weight:700;padding:0.18rem 0.55rem;
+  border-radius:20px;letter-spacing:0.08em;text-transform:uppercase;
+}
+.badge-Pending{background:rgba(230,126,34,0.18);color:#e67e22}
+.badge-Baking{background:rgba(41,128,185,0.18);color:#5dade2}
+.badge-Ready{background:rgba(39,174,96,0.18);color:#2ecc71}
+.badge-Delivered{background:rgba(255,255,255,0.08);color:var(--muted)}
+
+/* Date header */
+.date-header{
+  padding:0.4rem 0.5rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;
+  color:var(--gold);font-weight:600;
+}
+
+/* Empty state */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:0.8rem}
+
+/* Lightbox */
+#lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999;
+  display:none;align-items:center;justify-content:center;padding:1rem;
+}
+#lightbox.open{display:flex}
+#lightbox img{max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain}
+#lightbox .lb-close{
+  position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.1);
+  border:none;color:#fff;font-size:1.4rem;width:44px;height:44px;border-radius:50%;cursor:pointer;
+}
+
+/* Floating refresh btn */
+.fab{
+  position:fixed;bottom:1.5rem;right:1.2rem;
+  background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  color:#1a0a02;border:none;border-radius:50%;width:52px;height:52px;
+  font-size:1.3rem;cursor:pointer;box-shadow:0 4px 20px rgba(201,151,58,0.4);
+  display:flex;align-items:center;justify-content:center;z-index:50;
+}
+
+/* Loading */
+.spinner{
+  display:inline-block;width:18px;height:18px;border:2px solid var(--border);
+  border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{
+  display:flex;align-items:center;justify-content:center;
+  padding:3rem;flex-direction:column;gap:0.8rem;color:var(--muted);
+}
+
+/* Saved toast */
+#toast{
+  position:fixed;bottom:5rem;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--teal);color:#fff;padding:0.6rem 1.4rem;border-radius:30px;
+  font-size:0.82rem;opacity:0;pointer-events:none;transition:all 0.3s;z-index:200;
+  white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Responsive tweaks for laptop */
+@media(min-width:700px){
+  .stats-bar{grid-template-columns:repeat(4,1fr)}
+  #ordersContainer{padding:1rem 1.2rem 4rem;max-width:700px;margin:0 auto}
+  .topbar{padding:0.9rem 2rem}
+  .card-body{grid-template-columns:1fr auto}
+}
+@media(min-width:1100px){
+  #ordersContainer{max-width:900px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🎂 Cakes & Bakes</div>
+    <div class="login-sub">Admin Dashboard · Ferozepur</div>
+    <input type="email" id="loginEmail" placeholder="Admin Email" autocomplete="email"/>
+    <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password"/>
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-title">🎂 C&B Admin</div>
+    <div class="topbar-right">
+      <div id="topDate" style="font-size:0.72rem;color:var(--muted)"></div>
+      <button class="btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num" id="sTotal">–</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card"><div class="stat-num" id="sToday">–</div><div class="stat-lbl">Today</div></div>
+    <div class="stat-card"><div class="stat-num" id="sPending" style="color:#e67e22">–</div><div class="stat-lbl">Pending</div></div>
+    <div class="stat-card"><div class="stat-num" id="sReady" style="color:#2ecc71">–</div><div class="stat-lbl">Ready</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="today" onclick="switchTab('today')">📅 Today</div>
+    <div class="tab" data-tab="all" onclick="switchTab('all')">📋 All Orders</div>
+    <div class="tab" data-tab="search" onclick="switchTab('search')">🔍 Search</div>
+    <div class="tab" data-tab="pending" onclick="switchTab('pending')">⏳ Pending</div>
+  </div>
+
+  <!-- Search bar (hidden unless search tab active) -->
+  <div class="search-bar" id="searchBar" style="display:none">
+    <input type="text" id="searchInput" placeholder="Search name, phone, order ID…" oninput="doSearch()"/>
+  </div>
+
+  <!-- Orders list -->
+  <div id="ordersContainer">
+    <div class="loading-overlay"><div class="spinner"></div><span>Loading orders…</span></div>
+  </div>
+
+  <!-- Floating refresh -->
+  <button class="fab" onclick="loadOrders()" title="Refresh">↻</button>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lbImg" src="" alt="Cake reference"/>
+</div>
+
+<!-- Toast -->
+<div id="toast">✅ Saved!</div>
+
+<script>
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+let allOrders = [];
+let currentTab = 'today';
+
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatDate(str){
+  if(!str) return '—';
+  const [y,m,d] = str.split('-');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d} ${months[+m-1]} ${y}`;
+}
+function timeToMins(t){
+  if(!t||t==='Not specified') return 9999;
+  const clean = t.replace(/\s/g,'').toUpperCase();
+  const m = clean.match(/(\d+)(?::(\d+))?(AM|PM)/);
+  if(!m) return 9999;
+  let h = parseInt(m[1]), min = parseInt(m[2]||0);
+  if(m[3]==='PM' && h!==12) h+=12;
+  if(m[3]==='AM' && h===12) h=0;
+  return h*60+min;
+}
+function showToast(msg='✅ Saved!'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ─────────────────────────────────────────────
+// Auth
+// ─────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if(user){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    const d=new Date();
+    document.getElementById('topDate').textContent=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+    loadOrders();
+  } else {
+    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('app').style.display='none';
+  }
+});
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display='none';
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    errEl.textContent = 'Invalid email or password. Try again.';
+    errEl.style.display='block';
+  }
+}
+function doLogout(){
+  if(confirm('Log out of admin?')) auth.signOut();
+}
+
+// ─────────────────────────────────────────────
+// Load orders from Firestore
+// ─────────────────────────────────────────────
+async function loadOrders(){
+  document.getElementById('ordersContainer').innerHTML =
+    `<div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div>`;
+  try {
+    const snap = await db.collection('orders').orderBy('createdAt','desc').limit(300).get();
+    allOrders = snap.docs.map(d => ({id:d.id,...d.data()}));
+    updateStats();
+    renderTab();
+  } catch(e){
+    document.getElementById('ordersContainer').innerHTML =
+      `<div class="empty-state"><div>⚠️</div><p>Could not load orders.<br>Check your Firebase config.</p></div>`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Stats
+// ─────────────────────────────────────────────
+function updateStats(){
+  const today = todayStr();
+  document.getElementById('sTotal').textContent   = allOrders.length;
+  document.getElementById('sToday').textContent   = allOrders.filter(o=>o.pickupDate===today).length;
+  document.getElementById('sPending').textContent = allOrders.filter(o=>o.status==='Pending').length;
+  document.getElementById('sReady').textContent   = allOrders.filter(o=>o.status==='Ready').length;
+}
+
+// ─────────────────────────────────────────────
+// Tabs
+// ─────────────────────────────────────────────
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.getElementById('searchBar').style.display = tab==='search' ? 'block' : 'none';
+  if(tab==='search') { document.getElementById('searchInput').focus(); return; }
+  renderTab();
+}
+
+function renderTab(){
+  const today = todayStr();
+  let orders = [...allOrders];
+  if(currentTab==='today'){
+    orders = orders.filter(o=>o.pickupDate===today).sort((a,b)=>timeToMins(a.pickupTime)-timeToMins(b.pickupTime));
+    renderOrders(orders, true);
+  } else if(currentTab==='pending'){
+    orders = orders.filter(o=>o.status==='Pending'||o.status==='Baking');
+    renderOrders(orders);
+  } else {
+    renderOrders(orders);
+  }
+}
+
+function doSearch(){
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if(!q){ document.getElementById('ordersContainer').innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><p>Type to search orders…</p></div>'; return; }
+  const results = allOrders.filter(o=>
+    (o.name||'').toLowerCase().includes(q) ||
+    (o.phone||'').includes(q) ||
+    (o.orderId||'').toLowerCase().includes(q) ||
+    (o.flavour||'').toLowerCase().includes(q)
+  );
+  renderOrders(results);
+}
+
+// ─────────────────────────────────────────────
+// Render order cards
+// ─────────────────────────────────────────────
+function renderOrders(orders, showTimeHeader=false){
+  const container = document.getElementById('ordersContainer');
+  if(!orders.length){
+    container.innerHTML=`<div class="empty-state"><div class="empty-icon">🎂</div><p>No orders found here.</p></div>`;
+    return;
+  }
+  container.innerHTML = orders.map(o=>cardHTML(o, showTimeHeader)).join('');
+}
+
+function cardHTML(o, showTime){
+  const status   = o.status||'Pending';
+  const advance  = o.advancePaid||0;
+  const remPaid  = o.remainingPaid||false;
+  const imgHTML  = o.imageURL
+    ? `<img class="cake-img" src="${o.imageURL}" alt="ref" onclick="openLightbox('${o.imageURL}')" title="Tap to enlarge"/>`
+    : `<div class="no-img">🎨</div>`;
+
+  const notes = [o.cakeMessage&&`✍️ "${o.cakeMessage}"`, o.designDetails&&`📝 ${o.designDetails}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+  return `
+<div class="order-card status-${status}" id="card-${o.orderId}">
+  <div class="card-header">
+    <div>
+      <div class="order-id">${o.orderId||o.id}</div>
+      <span class="status-badge badge-${status}">${status}</span>
+    </div>
+    <div style="text-align:right">
+      <div class="order-time-badge">🕐 ${o.pickupTime||'—'}</div>
+      <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">📅 ${formatDate(o.pickupDate)}</div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div>
+      <div class="customer-name">${o.name||'—'}</div>
+      <a class="customer-phone" href="tel:${o.phone}">${o.phone||'—'}</a>
+      <div class="cake-details">
+        <strong>${o.flavour||'—'}</strong> &nbsp;·&nbsp; ${o.weight||'—'}
+        ${o.occasion?`&nbsp;·&nbsp; 🎉 ${o.occasion}`:''}
+      </div>
+    </div>
+    ${imgHTML}
+  </div>
+
+  ${notes?`<div class="card-notes">${notes}</div>`:''}
+
+  <div class="card-controls">
+    <select class="status-select" id="st-${o.orderId}">
+      ${['Pending','Baking','Ready','Delivered'].map(s=>`<option${s===status?' selected':''}>${s}</option>`).join('')}
+    </select>
+
+    <div class="payment-block">
+      <div>
+        <div class="pay-label">Advance ₹</div>
+        <input class="pay-input" type="number" min="0" id="adv-${o.orderId}" value="${advance}" placeholder="0"/>
+      </div>
+      <label class="remaining-toggle">
+        <input type="checkbox" id="rem-${o.orderId}" ${remPaid?'checked':''}/> Remaining Paid
+      </label>
+    </div>
+
+    <button class="btn-save" onclick="saveOrder('${o.orderId}')">💾 Save</button>
+    <button class="btn-sm" onclick="whatsapp('${o.phone||''}','${o.orderId||o.id}','${o.name||''}','${status}')" style="border-color:var(--teal);color:var(--teal-light)">💬 WA</button>
+  </div>
+</div>`;
+}
+
+// ─────────────────────────────────────────────
+// Save order update
+// ─────────────────────────────────────────────
+async function saveOrder(orderId){
+  const btn = document.querySelector(`#card-${orderId} .btn-save`);
+  btn.disabled=true; btn.textContent='⏳…';
+  const status  = document.getElementById(`st-${orderId}`).value;
+  const advance = parseFloat(document.getElementById(`adv-${orderId}`).value)||0;
+  const remPaid = document.getElementById(`rem-${orderId}`).checked;
+  try {
+    await db.collection('orders').doc(orderId).update({status, advancePaid:advance, remainingPaid:remPaid, updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    // Update local cache
+    const idx = allOrders.findIndex(o=>o.orderId===orderId||o.id===orderId);
+    if(idx>=0) Object.assign(allOrders[idx],{status,advancePaid:advance,remainingPaid:remPaid});
+    updateStats();
+    // Refresh card border colour
+    const card = document.getElementById(`card-${orderId}`);
+    card.className = card.className.replace(/status-\w+/,`status-${status}`);
+    card.querySelector('.status-badge').className=`status-badge badge-${status}`;
+    card.querySelector('.status-badge').textContent=status;
+    showToast('✅ Order updated!');
+  } catch(e){
+    showToast('⚠️ Save failed');
+  } finally {
+    btn.disabled=false; btn.textContent='💾 Save';
+  }
+}
+
+// ─────────────────────────────────────────────
+// WhatsApp shortcut
+// ─────────────────────────────────────────────
+function whatsapp(phone, orderId, name, status){
+  if(!phone){alert('No phone number for this order.');return;}
+  const clean = phone.replace(/\D/g,'');
+  const num = clean.length===10 ? '91'+clean : clean;
+  const msg = `🎂 *Cakes & Bakes Update*\n\nHi ${name}! Your order *${orderId}* is now *${status}*.\n\nThank you for ordering with us! 🙏`;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ─────────────────────────────────────────────
+// Lightbox
+// ─────────────────────────────────────────────
+function openLightbox(url){
+  document.getElementById('lbImg').src=url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+}
+
+// Enter key on login
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body>
+</html>
