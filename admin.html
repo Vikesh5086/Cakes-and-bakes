@@ -40,20 +40,19 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
 .auth-logo{font-size:2.2rem;margin-bottom:0.5rem}
 .auth-title{font-size:1.5rem;font-weight:700;color:var(--gold-light);margin-bottom:0.3rem}
 .auth-sub{font-size:0.82rem;color:rgba(255,255,255,0.45);margin-bottom:2rem}
-.auth-label{display:block;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:0.4rem;text-align:left}
-.phone-row{display:flex;gap:0.5rem;margin-bottom:1rem}
-.phone-prefix{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;padding:0.75rem 0.9rem;border-radius:6px;font-size:0.88rem;white-space:nowrap}
-.auth-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:0.9rem;padding:0.75rem 0.95rem;border-radius:6px;outline:none;transition:border-color 0.2s}
+.auth-label{display:block;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:0.4rem;text-align:left;margin-top:0.8rem}
+.auth-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:0.9rem;padding:0.75rem 0.95rem;border-radius:6px;outline:none;transition:border-color 0.2s;margin-bottom:0.2rem}
 .auth-input:focus{border-color:var(--gold)}
 .auth-input::placeholder{color:rgba(255,255,255,0.28)}
-.auth-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#2c1a0e;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.9rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.2s;margin-top:0.5rem}
+.auth-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#2c1a0e;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.9rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.2s;margin-top:1rem}
 .auth-btn:hover{opacity:0.9;transform:translateY(-1px)}
 .auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-.auth-info{font-size:0.8rem;color:rgba(255,255,255,0.45);margin-top:0.8rem}
-.auth-link{color:var(--gold-light);cursor:pointer;text-decoration:underline;font-size:0.8rem;margin-top:0.5rem;display:inline-block}
-#otpStep{display:none}
-#recaptcha-container{margin:1rem 0}
-.countdown{font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:0.6rem}
+.auth-link{color:var(--gold-light);cursor:pointer;text-decoration:underline;font-size:0.8rem;margin-top:0.8rem;display:inline-block}
+.auth-error{font-size:0.8rem;color:#ff6b6b;margin-top:0.6rem;min-height:1.2em;text-align:left}
+.auth-success{font-size:0.8rem;color:#2ecc71;margin-top:0.6rem;text-align:left}
+.pass-wrap{position:relative}
+.pass-toggle{position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:1rem;padding:0}
+.pass-toggle:hover{color:rgba(255,255,255,0.8)}
 
 /* DASHBOARD */
 #dashboard{display:none}
@@ -253,23 +252,34 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
     <div class="auth-logo">🎂</div>
     <div class="auth-title">Cakes & Bakes</div>
     <div class="auth-sub">Admin Dashboard · Ferozepur</div>
-    <div id="phoneStep">
-      <label class="auth-label">Enter your admin phone number</label>
-      <div class="phone-row">
-        <div class="phone-prefix">🇮🇳 +91</div>
-        <input class="auth-input" id="phoneInput" type="tel" maxlength="10" placeholder="10-digit number" onkeydown="if(event.key==='Enter')sendOTP()"/>
+
+    <!-- LOGIN FORM -->
+    <div id="loginStep">
+      <label class="auth-label">Email Address</label>
+      <input class="auth-input" id="emailInput" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')document.getElementById('passwordInput').focus()"/>
+      <label class="auth-label">Password</label>
+      <div class="pass-wrap">
+        <input class="auth-input" id="passwordInput" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')loginAdmin()"/>
+        <button class="pass-toggle" onclick="togglePass('passwordInput',this)" type="button">👁</button>
       </div>
-      <div id="recaptcha-container"></div>
-      <button class="auth-btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP 📲</button>
+      <div class="auth-error" id="loginError"></div>
+      <button class="auth-btn" id="loginBtn" onclick="loginAdmin()">🔐 Login</button>
+      <div style="margin-top:1rem">
+        <span class="auth-link" onclick="showForgot()">Forgot Password?</span>
+      </div>
     </div>
-    <div id="otpStep">
-      <div class="auth-info" id="otpSentMsg">OTP sent to <strong></strong></div><br/>
-      <label class="auth-label">Verify OTP</label>
-      <input class="auth-input" id="otpInput" type="text" maxlength="6" placeholder="6-digit OTP" onkeydown="if(event.key==='Enter')verifyOTP()"/>
-      <button class="auth-btn" id="verifyBtn" onclick="verifyOTP()" style="margin-top:0.8rem">Verify OTP ✅</button>
-      <div class="countdown" id="countdownMsg">Resend in <strong id="countdownSec">30</strong>s</div>
-      <div id="resendRow" style="display:none"><span class="auth-link" onclick="resendOTP()">Resend OTP</span></div><br/>
-      <span class="auth-link" onclick="backToPhone()">← Change number</span>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div id="forgotStep" style="display:none">
+      <p style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:1.2rem">Enter your email — we'll send a password reset link.</p>
+      <label class="auth-label">Email Address</label>
+      <input class="auth-input" id="resetEmailInput" type="email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')sendResetEmail()"/>
+      <div class="auth-error" id="resetError"></div>
+      <div class="auth-success" id="resetSuccess"></div>
+      <button class="auth-btn" id="resetBtn" onclick="sendResetEmail()">📧 Send Reset Link</button>
+      <div style="margin-top:1rem">
+        <span class="auth-link" onclick="showLogin()">← Back to Login</span>
+      </div>
     </div>
   </div>
 </div>
@@ -409,78 +419,84 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
 
 <script>
 // ═══════════════════════════════════════════════
-// CONFIG
+// AUTH — Email / Password
 // ═══════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════
-// AUTH
-// ═══════════════════════════════════════════════
-let confirmationResult=null, countdownTimer=null;
-
-function setupRecaptcha(){
-  if(window.recaptchaVerifier) return;
-  window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha-container',{
-    size:'normal',callback(){document.getElementById('sendOtpBtn').disabled=false;}
-  });
-  window.recaptchaVerifier.render();
-}
-
 window.addEventListener('load',()=>{
-  auth.onAuthStateChanged(user=>{ if(user) showDashboard(); else setupRecaptcha(); });
+  auth.onAuthStateChanged(user=>{ if(user) showDashboard(); });
 });
 
-async function sendOTP(){
-  const phone=document.getElementById('phoneInput').value.trim().replace(/\D/g,'');
-  if(phone.length!==10){alert('Please enter a valid 10-digit number.');return;}
-  const btn=document.getElementById('sendOtpBtn');
-  btn.disabled=true; btn.textContent='Sending…';
+function togglePass(inputId, btn){
+  const inp=document.getElementById(inputId);
+  if(inp.type==='password'){inp.type='text'; btn.textContent='🙈';}
+  else{inp.type='password'; btn.textContent='👁';}
+}
+
+function showForgot(){
+  document.getElementById('loginStep').style.display='none';
+  document.getElementById('forgotStep').style.display='block';
+  document.getElementById('resetError').textContent='';
+  document.getElementById('resetSuccess').textContent='';
+}
+
+function showLogin(){
+  document.getElementById('forgotStep').style.display='none';
+  document.getElementById('loginStep').style.display='block';
+  document.getElementById('loginError').textContent='';
+}
+
+async function loginAdmin(){
+  const email=document.getElementById('emailInput').value.trim();
+  const pass=document.getElementById('passwordInput').value;
+  const errEl=document.getElementById('loginError');
+  const btn=document.getElementById('loginBtn');
+
+  if(!email||!pass){errEl.textContent='Please enter email and password.';return;}
+  errEl.textContent='';
+  btn.disabled=true; btn.textContent='Logging in…';
+
   try{
-    confirmationResult=await auth.signInWithPhoneNumber('+91'+phone,window.recaptchaVerifier);
-    document.getElementById('phoneStep').style.display='none';
-    document.getElementById('otpStep').style.display='block';
-    document.querySelector('#otpSentMsg strong').textContent='+91'+phone;
-    startCountdown(30);
+    await auth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged will call showDashboard()
   }catch(err){
-    console.error(err); alert('OTP send failed: '+err.message);
-    btn.disabled=false; btn.textContent='Send OTP 📲';
-    window.recaptchaVerifier.clear(); window.recaptchaVerifier=null; setupRecaptcha();
+    console.error(err);
+    if(err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'){
+      errEl.textContent='❌ Wrong email or password.';
+    } else if(err.code==='auth/invalid-email'){
+      errEl.textContent='❌ Invalid email address.';
+    } else if(err.code==='auth/too-many-requests'){
+      errEl.textContent='⚠️ Too many attempts. Try again later or reset password.';
+    } else {
+      errEl.textContent='Error: '+err.message;
+    }
+    btn.disabled=false; btn.textContent='🔐 Login';
   }
 }
 
-async function verifyOTP(){
-  const otp=document.getElementById('otpInput').value.trim();
-  if(otp.length!==6){alert('Please enter 6-digit OTP.');return;}
-  const btn=document.getElementById('verifyBtn');
-  btn.disabled=true; btn.textContent='Verifying…';
-  try{ await confirmationResult.confirm(otp); }
-  catch(err){ console.error(err); alert('Invalid OTP.'); btn.disabled=false; btn.textContent='Verify OTP ✅'; }
-}
+async function sendResetEmail(){
+  const email=document.getElementById('resetEmailInput').value.trim();
+  const errEl=document.getElementById('resetError');
+  const sucEl=document.getElementById('resetSuccess');
+  const btn=document.getElementById('resetBtn');
 
-async function resendOTP(){
-  document.getElementById('resendRow').style.display='none';
-  document.getElementById('countdownMsg').style.display='block';
-  if(window.recaptchaVerifier){window.recaptchaVerifier.clear();window.recaptchaVerifier=null;}
-  document.getElementById('phoneStep').style.display='block';
-  document.getElementById('otpStep').style.display='none';
-  setupRecaptcha();
-}
+  if(!email){errEl.textContent='Please enter your email.';return;}
+  errEl.textContent=''; sucEl.textContent='';
+  btn.disabled=true; btn.textContent='Sending…';
 
-function backToPhone(){
-  clearInterval(countdownTimer);
-  document.getElementById('phoneStep').style.display='block';
-  document.getElementById('otpStep').style.display='none';
-  const btn=document.getElementById('sendOtpBtn');
-  btn.disabled=false; btn.textContent='Send OTP 📲';
-}
-
-function startCountdown(s){
-  const msg=document.getElementById('countdownMsg'),sec=document.getElementById('countdownSec'),row=document.getElementById('resendRow');
-  msg.style.display='block'; row.style.display='none'; sec.textContent=s;
-  clearInterval(countdownTimer);
-  countdownTimer=setInterval(()=>{
-    s--; sec.textContent=s;
-    if(s<=0){clearInterval(countdownTimer);msg.style.display='none';row.style.display='block';}
-  },1000);
+  try{
+    await auth.sendPasswordResetEmail(email);
+    sucEl.textContent='✅ Reset link sent! Check your email inbox.';
+    btn.textContent='📧 Sent!';
+  }catch(err){
+    console.error(err);
+    if(err.code==='auth/user-not-found'){
+      errEl.textContent='❌ No account found with this email.';
+    } else if(err.code==='auth/invalid-email'){
+      errEl.textContent='❌ Invalid email address.';
+    } else {
+      errEl.textContent='Error: '+err.message;
+    }
+    btn.disabled=false; btn.textContent='📧 Send Reset Link';
+  }
 }
 
 function logoutAdmin(){
@@ -488,11 +504,14 @@ function logoutAdmin(){
   auth.signOut().then(()=>{
     document.getElementById('dashboard').style.display='none';
     document.getElementById('authScreen').style.display='flex';
-    document.getElementById('phoneStep').style.display='block';
-    document.getElementById('otpStep').style.display='none';
-    document.getElementById('phoneInput').value='';
+    document.getElementById('loginStep').style.display='block';
+    document.getElementById('forgotStep').style.display='none';
+    document.getElementById('emailInput').value='';
+    document.getElementById('passwordInput').value='';
+    document.getElementById('loginError').textContent='';
+    document.getElementById('loginBtn').disabled=false;
+    document.getElementById('loginBtn').textContent='🔐 Login';
     allOrders=[]; if(unsubOrders){unsubOrders();unsubOrders=null;}
-    window.recaptchaVerifier=null; setupRecaptcha();
   });
 }
 
