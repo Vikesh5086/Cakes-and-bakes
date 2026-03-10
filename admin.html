@@ -308,7 +308,7 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
       <div class="stat-card" onclick="setFilter('all',null)"><div class="stat-num" id="statTotal">–</div><div class="stat-label">Total</div></div>
       <div class="stat-card" onclick="setFilter('today',null)"><div class="stat-num" id="statToday">–</div><div class="stat-label">Today</div></div>
       <div class="stat-card" onclick="setFilter('pending',null)"><div class="stat-num" id="statPending">–</div><div class="stat-label">Pending</div></div>
-      <div class="stat-card" onclick="setFilter('ready',null)"><div class="stat-num" id="statReady">–</div><div class="stat-label">Ready</div></div>
+      <div class="stat-card" onclick="setFilter('delivered',null)"><div class="stat-num" id="statDelivered">–</div><div class="stat-label">Delivered</div></div>
     </div>
     <div class="filter-bar">
       <button class="filter-btn active" data-filter="today" onclick="setFilter('today',this)">📅 Today</button>
@@ -332,7 +332,7 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
       <div class="chart-section">
         <div class="chart-title">💰 Revenue Overview</div>
         <div class="revenue-big" id="totalRevenue">₹0</div>
-        <div class="revenue-sub">Total advance collected (all time)</div>
+        <div class="revenue-sub">Total revenue: full amount for delivered orders + advance for active orders</div>
         <div class="revenue-grid">
           <div class="rev-card"><div class="rev-num" id="revToday">₹0</div><div class="rev-label">Today</div></div>
           <div class="rev-card"><div class="rev-num" id="revWeek">₹0</div><div class="rev-label">This Week</div></div>
@@ -560,7 +560,7 @@ function updateStats(){
   document.getElementById('statTotal').textContent=allOrders.length;
   document.getElementById('statToday').textContent=allOrders.filter(o=>o.pickupDate===today).length;
   document.getElementById('statPending').textContent=pending;
-  document.getElementById('statReady').textContent=allOrders.filter(o=>o.status==='Ready').length;
+  document.getElementById('statDelivered').textContent=allOrders.filter(o=>o.status==='Delivered').length;
   // Pending badge in top bar
   const badge=document.getElementById('pendingBadge');
   if(pending>0){badge.style.display='inline';badge.textContent=pending+' pending';}
@@ -846,18 +846,22 @@ function buildReports(){
   const weekAgo=new Date(now-7*86400000);
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
 
-  // Revenue — advance collected + full amount from delivered orders
-  const totalAdv=allOrders.reduce((s,o)=>s+(o.advancePaid||0),0);
-  const totalDeliveredFull=allOrders.filter(o=>o.status==='Delivered'&&o.remainingPaid).reduce((s,o)=>s+(o.cakeAmount||0),0);
-  const totalRevenue=totalAdv; // advance is main tracked metric
+  // Revenue logic:
+  // Delivered orders  => count full cakeAmount (pura paisa aa gaya)
+  // Non-delivered     => count only advancePaid (sirf advance mila abhi tak)
+  function orderRevenue(o){
+    return o.status==='Delivered' ? (o.cakeAmount||0) : (o.advancePaid||0);
+  }
 
-  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const totalRevenue=allOrders.reduce((s,o)=>s+orderRevenue(o),0);
+
+  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+orderRevenue(o),0);
   const weekAdv=allOrders.filter(o=>{
     if(!o.createdAt||!o.createdAt.toDate) return false;
     return o.createdAt.toDate()>=weekAgo;
-  }).reduce((s,o)=>s+(o.advancePaid||0),0);
-  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+(o.advancePaid||0),0);
-  const unpaidCount=allOrders.filter(o=>!o.remainingPaid&&o.status!=='Delivered').length;
+  }).reduce((s,o)=>s+orderRevenue(o),0);
+  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+orderRevenue(o),0);
+  const unpaidCount=allOrders.filter(o=>o.status!=='Delivered'&&(o.cakeAmount||0)>0&&!o.remainingPaid).length;
 
   document.getElementById('totalRevenue').textContent='₹'+totalRevenue.toLocaleString('en-IN');
   document.getElementById('revToday').textContent='₹'+todayAdv.toLocaleString('en-IN');
