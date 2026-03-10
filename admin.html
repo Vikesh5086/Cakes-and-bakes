@@ -4,867 +4,963 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Admin – Cakes & Bakes</title>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet"/>
-
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey:            "AIzaSyB_q1OByeEyYWnSGEUVlxnPGsLsoDrzxO8",
-  authDomain:        "cakes-and-bakes-7fcc0.firebaseapp.com",
-  projectId:         "cakes-and-bakes-7fcc0",
-  storageBucket:     "cakes-and-bakes-7fcc0.firebasestorage.app",
-  messagingSenderId: "899770261010",
-  appId:             "1:899770261010:web:7cff04a1b2e8ffc85dc2cb",
-  measurementId:     "G-6KZ0JPE0V4"
+const firebaseConfig={
+  apiKey:"AIzaSyB_q1OByeEyYWnSGEUVlxnPGsLsoDrzxO8",
+  authDomain:"cakes-and-bakes-7fcc0.firebaseapp.com",
+  projectId:"cakes-and-bakes-7fcc0",
+  storageBucket:"cakes-and-bakes-7fcc0.firebasestorage.app",
+  messagingSenderId:"899770261010",
+  appId:"1:899770261010:web:7cff04a1b2e8ffc85dc2cb"
 };
 firebase.initializeApp(firebaseConfig);
-const db   = firebase.firestore();
-const auth = firebase.auth();
+const db=firebase.firestore();
+const storage=firebase.storage();
+const auth=firebase.auth();
 </script>
-
 <style>
 :root{
-  --bg:#0a0704;--surface:#150e08;--surface2:#1e1409;
-  --gold:#c9973a;--gold-light:#e8c47a;--gold-dim:rgba(201,151,58,0.18);
-  --teal:#1a5c52;--teal-light:#2e8b7a;
-  --red:#c0392b;--green:#27ae60;--orange:#e67e22;--blue:#2980b9;
-  --text:#f0e6d6;--muted:rgba(240,230,214,0.5);--border:rgba(201,151,58,0.18);
-  --radius:14px;--card-shadow:0 4px 24px rgba(0,0,0,0.5);
+  --gold:#c9973a;--gold-light:#e8c47a;--teal:#1a5c52;--teal-light:#2e8b7a;
+  --bg:#0f0a05;--surface:rgba(255,255,255,0.05);--border:rgba(201,151,58,0.2);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-height:100vh}
+body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#1a0a02}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
 
-/* ── LOGIN SCREEN ── */
-#loginScreen{
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;padding:1.5rem;
-  background:radial-gradient(ellipse at center,#1a0e04 0%,#0a0704 70%);
-}
-.login-box{
-  width:100%;max-width:400px;background:var(--surface);
-  border:1px solid var(--border);border-radius:20px;
-  padding:2.5rem 2rem;text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,0.6);
-}
-.login-logo{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold-light);margin-bottom:0.3rem}
-.login-sub{color:var(--muted);font-size:0.82rem;margin-bottom:2rem;letter-spacing:0.05em}
+/* AUTH */
+#authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,#1a0502,#0e3028);padding:1.5rem}
+.auth-card{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.6);text-align:center}
+.auth-logo{font-size:2.2rem;margin-bottom:0.5rem}
+.auth-title{font-size:1.5rem;font-weight:700;color:var(--gold-light);margin-bottom:0.3rem}
+.auth-sub{font-size:0.82rem;color:rgba(255,255,255,0.45);margin-bottom:2rem}
+.auth-label{display:block;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:0.4rem;text-align:left}
+.phone-row{display:flex;gap:0.5rem;margin-bottom:1rem}
+.phone-prefix{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);color:#fff;padding:0.75rem 0.9rem;border-radius:6px;font-size:0.88rem;white-space:nowrap}
+.auth-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:0.9rem;padding:0.75rem 0.95rem;border-radius:6px;outline:none;transition:border-color 0.2s}
+.auth-input:focus{border-color:var(--gold)}
+.auth-input::placeholder{color:rgba(255,255,255,0.28)}
+.auth-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#2c1a0e;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.9rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.2s;margin-top:0.5rem}
+.auth-btn:hover{opacity:0.9;transform:translateY(-1px)}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.auth-info{font-size:0.8rem;color:rgba(255,255,255,0.45);margin-top:0.8rem}
+.auth-link{color:var(--gold-light);cursor:pointer;text-decoration:underline;font-size:0.8rem;margin-top:0.5rem;display:inline-block}
+#otpStep{display:none}
+#recaptcha-container{margin:1rem 0}
+.countdown{font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:0.6rem}
 
-/* Step indicator */
-.step-dots{display:flex;justify-content:center;gap:0.5rem;margin-bottom:1.5rem}
-.step-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background 0.3s}
-.step-dot.active{background:var(--gold)}
+/* DASHBOARD */
+#dashboard{display:none}
 
-/* Phone input with flag */
-.phone-row{display:flex;gap:0.5rem;margin-bottom:0.9rem}
-.country-code{
-  background:#0f0a05;border:1px solid var(--border);border-radius:10px;
-  color:var(--gold-light);padding:0.85rem 0.8rem;font-family:'Jost',sans-serif;
-  font-size:0.9rem;min-width:70px;text-align:center;outline:none;
-  cursor:default;
-}
-.login-box input{
-  width:100%;background:#0f0a05;border:1px solid var(--border);border-radius:10px;
-  padding:0.85rem 1rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.9rem;
-  margin-bottom:0.9rem;outline:none;transition:border 0.2s;
-}
-.login-box input:focus{border-color:var(--gold)}
-.login-box .phone-input{margin-bottom:0;flex:1}
+/* TOP BAR with tabs */
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(15,10,5,0.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.top-bar-row1{display:flex;align-items:center;justify-content:space-between;padding:0.85rem 1.5rem;gap:1rem}
+.top-logo{font-size:1rem;font-weight:700;color:var(--gold-light);letter-spacing:0.05em}
+.top-actions{display:flex;gap:0.5rem;align-items:center}
+.pending-badge{background:rgba(230,126,34,0.25);border:1px solid rgba(230,126,34,0.4);color:#e67e22;font-size:0.7rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;display:none}
+.logout-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);font-size:0.75rem;padding:0.45rem 1rem;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.logout-btn:hover{border-color:rgba(255,100,100,0.4);color:#ff8080}
 
-/* OTP boxes */
-.otp-row{display:flex;gap:0.5rem;justify-content:center;margin-bottom:1.2rem}
-.otp-box{
-  width:46px;height:54px;background:#0f0a05;border:2px solid var(--border);
-  border-radius:10px;color:var(--gold-light);font-size:1.4rem;font-weight:700;
-  text-align:center;font-family:'Jost',sans-serif;outline:none;transition:border 0.2s;
-}
-.otp-box:focus{border-color:var(--gold)}
+/* TABS */
+.tab-bar{display:flex;border-top:1px solid rgba(255,255,255,0.05)}
+.tab-btn-main{flex:1;padding:0.65rem;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;background:transparent;border:none;color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.2s;border-bottom:2px solid transparent}
+.tab-btn-main.active{color:var(--gold-light);border-bottom-color:var(--gold)}
+.tab-btn-main:hover{color:rgba(255,255,255,0.7)}
 
-.btn-login{
-  width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));
-  color:#1a0a02;border:none;border-radius:10px;padding:0.9rem;
-  font-family:'Jost',sans-serif;font-size:0.95rem;font-weight:700;
-  cursor:pointer;letter-spacing:0.06em;margin-top:0.3rem;transition:opacity 0.2s;
-}
-.btn-login:hover{opacity:0.88}
-.btn-login:disabled{opacity:0.5;cursor:default}
-.btn-ghost{
-  background:transparent;border:1px solid var(--border);color:var(--muted);
-  width:100%;border-radius:10px;padding:0.7rem;
-  font-family:'Jost',sans-serif;font-size:0.82rem;
-  cursor:pointer;margin-top:0.6rem;transition:all 0.2s;
-}
-.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
-.login-err{color:#e74c3c;font-size:0.82rem;margin-top:0.8rem;display:none;line-height:1.5}
-.login-info{color:var(--muted);font-size:0.8rem;margin-top:0.8rem;line-height:1.5}
-.resend-timer{color:var(--muted);font-size:0.78rem;margin-top:0.5rem}
-.resend-timer span{color:var(--gold-light);cursor:pointer;text-decoration:underline}
+/* TAB PANELS */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
 
-/* reCAPTCHA invisible container */
-#recaptcha-container{margin-bottom:0.5rem}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0.8rem;padding:1.2rem 1.5rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s}
+.stat-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.stat-num{font-size:2rem;font-weight:800;color:var(--gold-light);line-height:1}
+.stat-label{font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:0.3rem}
 
-/* ── MAIN APP ── */
-#app{display:none}
+/* FILTERS */
+.filter-bar{display:flex;flex-wrap:wrap;gap:0.6rem;padding:0 1.5rem 1rem;align-items:center}
+.filter-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:0.75rem;letter-spacing:0.08em;padding:0.45rem 1rem;border-radius:20px;cursor:pointer;transition:all 0.2s}
+.filter-btn.active,.filter-btn:hover{background:rgba(201,151,58,0.18);border-color:var(--gold);color:var(--gold-light)}
+.search-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:0.8rem;padding:0.45rem 0.9rem;border-radius:20px;outline:none;transition:border-color 0.2s;min-width:180px}
+.search-box:focus{border-color:var(--gold)}
+.search-box::placeholder{color:rgba(255,255,255,0.28)}
+.date-input{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:0.78rem;padding:0.45rem 0.7rem;border-radius:20px;outline:none;cursor:pointer}
+.date-input::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+.clear-btn{background:rgba(255,100,100,0.1);border:1px solid rgba(255,100,100,0.2);color:rgba(255,150,150,0.8);font-size:0.72rem;padding:0.4rem 0.7rem;border-radius:16px;cursor:pointer;transition:all 0.2s}
+.clear-btn:hover{background:rgba(255,100,100,0.2)}
 
-/* Top bar */
-.topbar{
-  position:sticky;top:0;z-index:100;
-  background:rgba(10,7,4,0.95);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0.9rem 1.2rem;gap:0.8rem;
-}
-.topbar-title{font-family:'Playfair Display',serif;color:var(--gold-light);font-size:1.15rem;white-space:nowrap}
-.topbar-right{display:flex;align-items:center;gap:0.7rem}
-.btn-sm{
-  background:transparent;border:1px solid var(--border);border-radius:8px;
-  color:var(--muted);padding:0.4rem 0.8rem;font-family:'Jost',sans-serif;font-size:0.75rem;
-  cursor:pointer;transition:all 0.2s;white-space:nowrap;
-}
-.btn-sm:hover{border-color:var(--gold);color:var(--gold)}
+/* ORDERS */
+.orders-wrap{padding:0 1.5rem 2rem}
+.orders-loading{text-align:center;padding:3rem;color:rgba(255,255,255,0.3);font-size:0.9rem}
+.no-orders{text-align:center;padding:3rem;color:rgba(255,255,255,0.3);font-size:0.9rem}
 
-/* Stats bar */
-.stats-bar{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;
-  padding:0.8rem 1rem;background:var(--surface);border-bottom:1px solid var(--border);
-}
-.stat-card{
-  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:0.7rem 0.5rem;text-align:center;
-}
-.stat-num{font-size:1.4rem;font-weight:700;color:var(--gold-light);line-height:1}
-.stat-lbl{font-size:0.62rem;color:var(--muted);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.08em}
+/* ORDER CARD */
+.order-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;margin-bottom:1rem;overflow:hidden;transition:border-color 0.2s}
+.order-card:hover{border-color:rgba(201,151,58,0.3)}
+.order-card.repeat-customer{border-left:3px solid #9b59b6}
+.order-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.6rem;padding:0.9rem 1.1rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.05)}
+.order-id{font-size:0.7rem;color:var(--gold);letter-spacing:0.1em;font-weight:600}
+.order-name{font-size:0.95rem;font-weight:600;color:#fff}
+.order-meta{font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:2px}
+.repeat-tag{font-size:0.62rem;background:rgba(155,89,182,0.2);border:1px solid rgba(155,89,182,0.4);color:#c39bd3;padding:0.15rem 0.5rem;border-radius:10px;margin-left:0.4rem}
+.order-status{font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0.25rem 0.7rem;border-radius:20px;white-space:nowrap}
+.s-Pending{background:rgba(230,126,34,0.18);color:#e67e22;border:1px solid rgba(230,126,34,0.3)}
+.s-Baking{background:rgba(41,128,185,0.18);color:#5dade2;border:1px solid rgba(41,128,185,0.3)}
+.s-Ready{background:rgba(39,174,96,0.18);color:#2ecc71;border:1px solid rgba(39,174,96,0.3)}
+.s-Delivered{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.12)}
+.chevron{color:rgba(255,255,255,0.3);transition:transform 0.2s;font-size:0.8rem;margin-left:0.3rem}
+.order-card.expanded .chevron{transform:rotate(180deg)}
 
-/* Tabs */
-.tabs{
-  display:flex;overflow-x:auto;gap:0;
-  background:var(--surface);border-bottom:1px solid var(--border);
-  scrollbar-width:none;
-}
-.tabs::-webkit-scrollbar{display:none}
-.tab{
-  flex:1;min-width:80px;padding:0.75rem 0.6rem;text-align:center;
-  font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;
-  color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;
-  transition:all 0.2s;white-space:nowrap;font-weight:500;
-}
-.tab.active{color:var(--gold-light);border-bottom-color:var(--gold)}
+/* ORDER BODY */
+.order-body{display:none;padding:1.1rem}
+.order-card.expanded .order-body{display:block}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.6rem;margin-bottom:1rem}
+.detail-item{background:rgba(255,255,255,0.03);border-radius:6px;padding:0.6rem 0.8rem}
+.detail-label{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:0.2rem}
+.detail-value{font-size:0.88rem;color:rgba(255,255,255,0.85);word-break:break-word}
 
-/* Search + Date bar */
-.search-bar{
-  padding:0.8rem 1rem;background:var(--surface);
-  border-bottom:1px solid var(--border);display:none;
-}
-.search-bar.visible{display:block}
-.search-row{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap}
-.search-bar input[type="text"]{
-  flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:0.7rem 1rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;
-}
-.search-bar input[type="text"]:focus{border-color:var(--gold)}
+/* IMAGE */
+.cake-image-wrap{margin-bottom:1rem}
+.cake-image-wrap .detail-label{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:0.5rem}
+.cake-image-thumb{width:100%;max-width:300px;border-radius:8px;border:2px solid rgba(201,151,58,0.3);cursor:pointer;object-fit:cover;transition:border-color 0.2s,transform 0.2s;display:block}
+.cake-image-thumb:hover{border-color:var(--gold);transform:scale(1.01)}
+.no-image{font-size:0.8rem;color:rgba(255,255,255,0.25);font-style:italic}
 
-/* Date picker */
-.date-picker-wrap{position:relative}
-.date-btn{
-  display:flex;align-items:center;gap:0.4rem;
-  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
-  padding:0.7rem 0.9rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.82rem;
-  cursor:pointer;white-space:nowrap;transition:border 0.2s;
-}
-.date-btn:hover,.date-btn.active{border-color:var(--gold);color:var(--gold-light)}
-.date-btn .cal-icon{font-size:1rem}
+/* ADMIN NOTE */
+.note-area{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:'Segoe UI',sans-serif;font-size:0.82rem;padding:0.65rem 0.8rem;border-radius:6px;outline:none;resize:vertical;min-height:60px;margin-bottom:0.6rem;transition:border-color 0.2s}
+.note-area:focus{border-color:var(--gold)}
+.note-area::placeholder{color:rgba(255,255,255,0.25)}
 
-/* Native date input hidden behind button */
-.date-native{
-  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;
-  font-size:16px;/* prevent zoom on iOS */
-}
-.clear-date{
-  background:transparent;border:1px solid rgba(192,57,43,0.4);
-  border-radius:8px;color:#e74c3c;padding:0.6rem 0.7rem;
-  font-size:0.75rem;cursor:pointer;white-space:nowrap;transition:all 0.2s;
-}
-.clear-date:hover{background:rgba(192,57,43,0.1)}
+/* CONTROLS */
+.controls-row{display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;margin-bottom:0.8rem}
+.status-select{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.8rem;padding:0.5rem 0.8rem;border-radius:6px;outline:none;cursor:pointer}
+.status-select option{background:#1a0a05}
+.save-btn{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;font-size:0.75rem;font-weight:600;letter-spacing:0.08em;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.save-btn:hover{opacity:0.9}
+.save-indicator{font-size:0.75rem;color:#2ecc71;display:none}
+.delete-btn{background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;font-size:0.72rem;padding:0.5rem 0.8rem;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.delete-btn:hover{background:rgba(231,76,60,0.22)}
+.print-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);font-size:0.72rem;padding:0.5rem 0.8rem;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.print-btn:hover{border-color:var(--gold);color:var(--gold-light)}
 
-/* Orders list */
-#ordersContainer{padding:0.8rem 0.8rem 5rem;display:flex;flex-direction:column;gap:0.8rem}
+/* PAYMENT */
+.payment-row{display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;margin-bottom:0.8rem}
+.advance-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:0.8rem;padding:0.5rem 0.7rem;border-radius:6px;outline:none;width:110px}
+.advance-input:focus{border-color:var(--gold)}
+.advance-input::placeholder{color:rgba(255,255,255,0.28)}
+.pay-toggle{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-size:0.75rem;padding:0.5rem 0.9rem;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.pay-toggle.paid{background:rgba(39,174,96,0.18);border-color:#2ecc71;color:#2ecc71}
 
-/* Order card */
-.order-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;box-shadow:var(--card-shadow);transition:transform 0.15s;
-}
-.order-card:active{transform:scale(0.99)}
-.card-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0.9rem 1rem 0.6rem;gap:0.5rem;flex-wrap:wrap;
-}
-.order-id{font-size:0.72rem;color:var(--gold);letter-spacing:0.08em;font-weight:600}
-.order-time-badge{
-  font-size:0.7rem;background:var(--gold-dim);border:1px solid var(--border);
-  color:var(--gold-light);padding:0.2rem 0.6rem;border-radius:20px;white-space:nowrap;
-}
-.card-body{padding:0 1rem 0.6rem;display:grid;grid-template-columns:1fr auto;gap:0.5rem;align-items:start}
-.customer-name{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
-.customer-phone{font-size:0.8rem;color:var(--gold-light);text-decoration:none}
-.customer-phone:hover{text-decoration:underline}
-.cake-details{font-size:0.78rem;color:var(--muted);margin-top:0.3rem;line-height:1.7}
-.cake-details strong{color:var(--text)}
-.cake-img{
-  width:72px;height:72px;border-radius:10px;object-fit:cover;
-  border:2px solid var(--border);cursor:pointer;flex-shrink:0;
-}
-.no-img{
-  width:72px;height:72px;border-radius:10px;background:var(--surface2);
-  border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;
-  font-size:1.6rem;flex-shrink:0;
-}
-.card-notes{
-  padding:0 1rem 0.6rem;font-size:0.76rem;color:var(--muted);
-  border-top:1px solid var(--border);padding-top:0.6rem;line-height:1.6;
-}
-.card-controls{
-  padding:0.7rem 1rem 0.9rem;border-top:1px solid var(--border);
-  display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
-}
-.status-select{
-  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--text);padding:0.45rem 0.6rem;font-family:'Jost',sans-serif;font-size:0.78rem;
-  cursor:pointer;outline:none;flex:1;min-width:130px;
-}
-.status-select:focus{border-color:var(--gold)}
-.payment-block{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;flex:1}
-.pay-input{
-  width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  padding:0.42rem 0.6rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.8rem;
-  outline:none;
-}
-.pay-input:focus{border-color:var(--teal-light)}
-.pay-label{font-size:0.72rem;color:var(--muted)}
-.remaining-toggle{display:flex;align-items:center;gap:0.3rem;cursor:pointer;font-size:0.75rem;color:var(--muted)}
-.remaining-toggle input[type=checkbox]{accent-color:var(--teal-light);width:14px;height:14px;cursor:pointer}
-.btn-save{
-  background:linear-gradient(135deg,var(--teal),var(--teal-light));
-  color:#fff;border:none;border-radius:8px;padding:0.45rem 0.85rem;
-  font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:600;
-  cursor:pointer;letter-spacing:0.05em;transition:opacity 0.2s;white-space:nowrap;
-}
-.btn-save:hover{opacity:0.85}
-.btn-save:disabled{opacity:0.5;cursor:default}
+/* WHATSAPP */
+.wa-update-btn{display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,#25d366,#128c5e);color:#fff;font-size:0.75rem;font-weight:600;letter-spacing:0.06em;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;text-decoration:none;transition:all 0.2s}
+.wa-update-btn:hover{opacity:0.9}
 
-/* Status colours */
-.status-Pending{border-left:4px solid var(--orange)}
-.status-Baking{border-left:4px solid var(--blue)}
-.status-Ready{border-left:4px solid var(--green)}
-.status-Delivered{border-left:4px solid var(--muted)}
-.status-badge{
-  display:inline-block;font-size:0.68rem;font-weight:700;padding:0.18rem 0.55rem;
-  border-radius:20px;letter-spacing:0.08em;text-transform:uppercase;
-}
-.badge-Pending{background:rgba(230,126,34,0.18);color:#e67e22}
-.badge-Baking{background:rgba(41,128,185,0.18);color:#5dade2}
-.badge-Ready{background:rgba(39,174,96,0.18);color:#2ecc71}
-.badge-Delivered{background:rgba(255,255,255,0.08);color:var(--muted)}
+/* ── CHARTS TAB ── */
+.charts-wrap{padding:1.5rem}
+.chart-section{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+.chart-title{font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:1rem}
+.bar-chart{display:flex;flex-direction:column;gap:0.5rem}
+.bar-row{display:flex;align-items:center;gap:0.7rem;font-size:0.78rem}
+.bar-label{min-width:90px;color:rgba(255,255,255,0.6);text-align:right;font-size:0.72rem}
+.bar-track{flex:1;background:rgba(255,255,255,0.06);border-radius:4px;height:22px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal),var(--teal-light));transition:width 0.8s ease;display:flex;align-items:center;padding-left:6px;font-size:0.7rem;color:#fff;font-weight:600;min-width:30px}
+.bar-fill.gold{background:linear-gradient(90deg,var(--gold),var(--gold-light));color:#2c1a0e}
+.revenue-big{font-size:2.5rem;font-weight:800;color:var(--gold-light);margin-bottom:0.3rem}
+.revenue-sub{font-size:0.78rem;color:rgba(255,255,255,0.35)}
+.revenue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.8rem;margin-top:1rem}
+.rev-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.9rem;text-align:center}
+.rev-num{font-size:1.4rem;font-weight:700;color:var(--gold-light)}
+.rev-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.35);margin-top:0.2rem}
 
-/* Date header in list */
-.date-header{
-  padding:0.4rem 0.5rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;
-  color:var(--gold);font-weight:600;
-}
-/* Empty state */
-.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
-.empty-state .empty-icon{font-size:3rem;margin-bottom:0.8rem}
+/* ── GALLERY MANAGER TAB ── */
+.gallery-wrap{padding:1.5rem}
+.gallery-section{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+.gallery-upload-zone{border:2px dashed rgba(201,151,58,0.35);border-radius:8px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+.gallery-upload-zone:hover{border-color:var(--gold);background:rgba(201,151,58,0.05)}
+.gallery-upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.gallery-upload-text{color:rgba(255,255,255,0.5);font-size:0.88rem}
+.gallery-upload-text strong{color:var(--gold-light)}
+.gallery-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.8rem;margin-top:1rem}
+.gallery-item-admin{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;background:rgba(255,255,255,0.05)}
+.gallery-item-admin img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-item-admin .del-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;flex-direction:column;gap:0.4rem}
+.gallery-item-admin:hover .del-overlay{display:flex}
+.del-overlay button{background:rgba(231,76,60,0.9);border:none;color:#fff;font-size:0.72rem;padding:0.4rem 0.8rem;border-radius:4px;cursor:pointer;font-weight:600}
+.gallery-loading{text-align:center;padding:2rem;color:rgba(255,255,255,0.3);font-size:0.85rem}
 
-/* Lightbox */
-#lightbox{
-  position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999;
-  display:none;align-items:center;justify-content:center;padding:1rem;
-}
+/* ── CLOSED DATES TAB ── */
+.closed-wrap{padding:1.5rem}
+.closed-section{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+.closed-form{display:flex;flex-wrap:wrap;gap:0.7rem;align-items:flex-end;margin-bottom:1.2rem}
+.closed-input-group{display:flex;flex-direction:column;gap:0.3rem}
+.closed-input-group label{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4)}
+.closed-date-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:0.85rem;padding:0.6rem 0.8rem;border-radius:6px;outline:none}
+.closed-date-input:focus{border-color:var(--gold)}
+.closed-date-input::-webkit-calendar-picker-indicator{filter:invert(0.6)}
+.closed-reason-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);color:#fff;font-size:0.85rem;padding:0.6rem 0.8rem;border-radius:6px;outline:none;min-width:220px}
+.closed-reason-input::placeholder{color:rgba(255,255,255,0.28)}
+.closed-reason-input:focus{border-color:var(--gold)}
+.add-closed-btn{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#2c1a0e;font-weight:700;font-size:0.8rem;padding:0.65rem 1.2rem;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.add-closed-btn:hover{opacity:0.9}
+.closed-list{display:flex;flex-direction:column;gap:0.6rem}
+.closed-item{display:flex;align-items:center;justify-content:space-between;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.2);border-radius:8px;padding:0.75rem 1rem;gap:0.8rem}
+.closed-item-info{display:flex;flex-direction:column;gap:0.15rem}
+.closed-item-date{font-size:0.9rem;font-weight:600;color:#e74c3c}
+.closed-item-reason{font-size:0.78rem;color:rgba(255,255,255,0.5)}
+.closed-item-remove{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;font-size:0.7rem;padding:0.35rem 0.7rem;border-radius:4px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.closed-item-remove:hover{background:rgba(231,76,60,0.3)}
+.no-closed{text-align:center;padding:2rem;color:rgba(255,255,255,0.3);font-size:0.85rem}
+
+/* LIGHTBOX */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;align-items:center;justify-content:center;padding:1rem}
 #lightbox.open{display:flex}
-#lightbox img{max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain}
-#lightbox .lb-close{
-  position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.1);
-  border:none;color:#fff;font-size:1.4rem;width:44px;height:44px;border-radius:50%;cursor:pointer;
-}
-/* FAB */
-.fab{
-  position:fixed;bottom:1.5rem;right:1.2rem;
-  background:linear-gradient(135deg,var(--gold),var(--gold-light));
-  color:#1a0a02;border:none;border-radius:50%;width:52px;height:52px;
-  font-size:1.3rem;cursor:pointer;box-shadow:0 4px 20px rgba(201,151,58,0.4);
-  display:flex;align-items:center;justify-content:center;z-index:50;
-}
-/* Loading */
-.spinner{
-  display:inline-block;width:18px;height:18px;border:2px solid var(--border);
-  border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay{
-  display:flex;align-items:center;justify-content:center;
-  padding:3rem;flex-direction:column;gap:0.8rem;color:var(--muted);
-}
-/* Toast */
-#toast{
-  position:fixed;bottom:5rem;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--teal);color:#fff;padding:0.6rem 1.4rem;border-radius:30px;
-  font-size:0.82rem;opacity:0;pointer-events:none;transition:all 0.3s;z-index:200;
-  white-space:nowrap;
-}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#lightboxImg{max-width:90vw;max-height:90vh;border-radius:8px;object-fit:contain}
+.lightbox-close{position:fixed;top:1rem;right:1.2rem;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.4rem;cursor:pointer;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;z-index:1001}
+.lightbox-close:hover{background:rgba(255,255,255,0.2)}
 
-@media(min-width:700px){
-  .stats-bar{grid-template-columns:repeat(4,1fr)}
-  #ordersContainer{padding:1rem 1.2rem 4rem;max-width:700px;margin:0 auto}
-  .topbar{padding:0.9rem 2rem}
-  .card-body{grid-template-columns:1fr auto}
+/* PRINT STYLES */
+@media print{
+  body{background:#fff;color:#000}
+  .no-print{display:none!important}
+  .print-receipt{display:block!important}
 }
-@media(min-width:1100px){
-  #ordersContainer{max-width:900px}
+.print-receipt{display:none}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .top-bar-row1{padding:0.7rem 1rem}
+  .stats-row{grid-template-columns:repeat(2,1fr);padding:1rem}
+  .filter-bar{padding:0 1rem 0.8rem}
+  .orders-wrap,.charts-wrap,.gallery-wrap,.closed-wrap{padding:0 1rem 2rem}
+  .detail-grid{grid-template-columns:1fr 1fr}
+  .controls-row,.payment-row{flex-direction:column;align-items:flex-start}
+  .revenue-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- ── LOGIN ── -->
-<div id="loginScreen">
-  <div class="login-box">
-    <div class="login-logo">🎂 Cakes & Bakes</div>
-    <div class="login-sub">Admin Dashboard · Ferozepur</div>
-
-    <!-- Step dots -->
-    <div class="step-dots">
-      <div class="step-dot active" id="dot1"></div>
-      <div class="step-dot" id="dot2"></div>
-    </div>
-
-    <!-- STEP 1: Phone number -->
-    <div id="stepPhone">
-      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">Enter your admin phone number to receive OTP</p>
+<!-- ══ AUTH ══ -->
+<div id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">🎂</div>
+    <div class="auth-title">Cakes & Bakes</div>
+    <div class="auth-sub">Admin Dashboard · Ferozepur</div>
+    <div id="phoneStep">
+      <label class="auth-label">Enter your admin phone number</label>
       <div class="phone-row">
-        <div class="country-code">🇮🇳 +91</div>
-        <input class="phone-input" type="tel" id="phoneInput" placeholder="98765 43210" maxlength="10" autocomplete="tel"/>
+        <div class="phone-prefix">🇮🇳 +91</div>
+        <input class="auth-input" id="phoneInput" type="tel" maxlength="10" placeholder="10-digit number" onkeydown="if(event.key==='Enter')sendOTP()"/>
       </div>
-      <!-- reCAPTCHA invisible -->
       <div id="recaptcha-container"></div>
-      <button class="btn-login" id="btnSendOTP" onclick="sendOTP()">Send OTP 📲</button>
-      <div class="login-err" id="loginErr"></div>
+      <button class="auth-btn" id="sendOtpBtn" onclick="sendOTP()">Send OTP 📲</button>
     </div>
-
-    <!-- STEP 2: OTP entry -->
-    <div id="stepOTP" style="display:none">
-      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;">OTP sent to <strong id="sentToNum" style="color:var(--gold-light)"></strong></p>
-      <div class="otp-row">
-        <input class="otp-box" type="tel" maxlength="1" id="otp0" oninput="otpInput(0)" onkeydown="otpBack(event,0)"/>
-        <input class="otp-box" type="tel" maxlength="1" id="otp1" oninput="otpInput(1)" onkeydown="otpBack(event,1)"/>
-        <input class="otp-box" type="tel" maxlength="1" id="otp2" oninput="otpInput(2)" onkeydown="otpBack(event,2)"/>
-        <input class="otp-box" type="tel" maxlength="1" id="otp3" oninput="otpInput(3)" onkeydown="otpBack(event,3)"/>
-        <input class="otp-box" type="tel" maxlength="1" id="otp4" oninput="otpInput(4)" onkeydown="otpBack(event,4)"/>
-        <input class="otp-box" type="tel" maxlength="1" id="otp5" oninput="otpInput(5)" onkeydown="otpBack(event,5)"/>
-      </div>
-      <button class="btn-login" id="btnVerifyOTP" onclick="verifyOTP()">Verify OTP ✅</button>
-      <div class="resend-timer" id="resendTimer">Resend OTP in <strong id="timerCount">30</strong>s</div>
-      <div class="resend-timer" id="resendLink" style="display:none">
-        Didn't receive? <span onclick="resendOTP()">Resend OTP</span>
-      </div>
-      <button class="btn-ghost" onclick="backToPhone()">← Change number</button>
-      <div class="login-err" id="otpErr"></div>
+    <div id="otpStep">
+      <div class="auth-info" id="otpSentMsg">OTP sent to <strong></strong></div><br/>
+      <label class="auth-label">Verify OTP</label>
+      <input class="auth-input" id="otpInput" type="text" maxlength="6" placeholder="6-digit OTP" onkeydown="if(event.key==='Enter')verifyOTP()"/>
+      <button class="auth-btn" id="verifyBtn" onclick="verifyOTP()" style="margin-top:0.8rem">Verify OTP ✅</button>
+      <div class="countdown" id="countdownMsg">Resend in <strong id="countdownSec">30</strong>s</div>
+      <div id="resendRow" style="display:none"><span class="auth-link" onclick="resendOTP()">Resend OTP</span></div><br/>
+      <span class="auth-link" onclick="backToPhone()">← Change number</span>
     </div>
-
   </div>
 </div>
 
-<!-- ── APP ── -->
-<div id="app">
-  <!-- Top bar -->
-  <div class="topbar">
-    <div class="topbar-title">🎂 C&B Admin</div>
-    <div class="topbar-right">
-      <div id="topDate" style="font-size:0.72rem;color:var(--muted)"></div>
-      <button class="btn-sm" onclick="doLogout()">Logout</button>
+<!-- ══ DASHBOARD ══ -->
+<div id="dashboard">
+  <div class="top-bar">
+    <div class="top-bar-row1">
+      <div class="top-logo">🎂 C&B Admin</div>
+      <div class="top-actions">
+        <span class="pending-badge" id="pendingBadge">0 pending</span>
+        <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn-main active" onclick="switchTab('orders',this)">📋 Orders</button>
+      <button class="tab-btn-main" onclick="switchTab('reports',this)">📊 Reports</button>
+      <button class="tab-btn-main" onclick="switchTab('gallery',this)">🖼️ Gallery</button>
+      <button class="tab-btn-main" onclick="switchTab('closed',this)">🚫 Closed Dates</button>
     </div>
   </div>
 
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-num" id="sTotal">–</div><div class="stat-lbl">Total</div></div>
-    <div class="stat-card"><div class="stat-num" id="sToday">–</div><div class="stat-lbl">Today</div></div>
-    <div class="stat-card"><div class="stat-num" id="sPending" style="color:#e67e22">–</div><div class="stat-lbl">Pending</div></div>
-    <div class="stat-card"><div class="stat-num" id="sReady" style="color:#2ecc71">–</div><div class="stat-lbl">Ready</div></div>
+  <!-- ── ORDERS TAB ── -->
+  <div id="tab-orders" class="tab-panel active">
+    <div class="stats-row">
+      <div class="stat-card" onclick="setFilter('all',null)"><div class="stat-num" id="statTotal">–</div><div class="stat-label">Total</div></div>
+      <div class="stat-card" onclick="setFilter('today',null)"><div class="stat-num" id="statToday">–</div><div class="stat-label">Today</div></div>
+      <div class="stat-card" onclick="setFilter('pending',null)"><div class="stat-num" id="statPending">–</div><div class="stat-label">Pending</div></div>
+      <div class="stat-card" onclick="setFilter('ready',null)"><div class="stat-num" id="statReady">–</div><div class="stat-label">Ready</div></div>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="today" onclick="setFilter('today',this)">📅 Today</button>
+      <button class="filter-btn" data-filter="all" onclick="setFilter('all',this)">📋 All</button>
+      <input class="search-box" id="searchBox" type="text" placeholder="🔍 Name / phone / ID" oninput="renderOrders()"/>
+      <button class="filter-btn" data-filter="pending" onclick="setFilter('pending',this)">⏳ Pending</button>
+      <input class="date-input" id="dateFilter" type="date" onchange="renderOrders()" title="Filter by pickup date"/>
+      <button class="clear-btn" onclick="clearFilters()">✕ Clear</button>
+    </div>
+    <div class="orders-wrap">
+      <div class="orders-loading" id="ordersLoading">Loading orders…</div>
+      <div id="ordersList"></div>
+    </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" data-tab="today"   onclick="switchTab('today')">📅 Today</div>
-    <div class="tab"        data-tab="all"     onclick="switchTab('all')">📋 All</div>
-    <div class="tab"        data-tab="search"  onclick="switchTab('search')">🔍 Search</div>
-    <div class="tab"        data-tab="pending" onclick="switchTab('pending')">⏳ Pending</div>
-  </div>
-
-  <!-- Search + Date bar (shown only in search tab) -->
-  <div class="search-bar" id="searchBar">
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="Search name, phone, order ID…" oninput="doSearch()"/>
-      <div class="date-picker-wrap">
-        <div class="date-btn" id="dateBtnLabel">
-          <span class="cal-icon">📅</span>
-          <span id="dateBtnText">Pick Date</span>
-          <input type="date" class="date-native" id="datePickerInput" onchange="onDateChange()"/>
+  <!-- ── REPORTS TAB ── -->
+  <div id="tab-reports" class="tab-panel">
+    <div class="charts-wrap">
+      <!-- Revenue summary -->
+      <div class="chart-section">
+        <div class="chart-title">💰 Revenue Overview</div>
+        <div class="revenue-big" id="totalRevenue">₹0</div>
+        <div class="revenue-sub">Total advance collected (all time)</div>
+        <div class="revenue-grid">
+          <div class="rev-card"><div class="rev-num" id="revToday">₹0</div><div class="rev-label">Today</div></div>
+          <div class="rev-card"><div class="rev-num" id="revWeek">₹0</div><div class="rev-label">This Week</div></div>
+          <div class="rev-card"><div class="rev-num" id="revMonth">₹0</div><div class="rev-label">This Month</div></div>
+          <div class="rev-card"><div class="rev-num" id="revPending">₹0</div><div class="rev-label">Remaining Unpaid</div></div>
         </div>
       </div>
-      <button class="clear-date" id="clearDateBtn" onclick="clearDate()" style="display:none">✕ Clear</button>
+      <!-- Orders by status -->
+      <div class="chart-section">
+        <div class="chart-title">📦 Orders by Status</div>
+        <div class="bar-chart" id="statusChart"></div>
+      </div>
+      <!-- Top flavours -->
+      <div class="chart-section">
+        <div class="chart-title">🎂 Top Flavours</div>
+        <div class="bar-chart" id="flavourChart"></div>
+      </div>
+      <!-- Orders last 7 days -->
+      <div class="chart-section">
+        <div class="chart-title">📅 Orders – Last 7 Days</div>
+        <div class="bar-chart" id="weekChart"></div>
+      </div>
+      <!-- Repeat customers -->
+      <div class="chart-section">
+        <div class="chart-title">🔁 Repeat Customers</div>
+        <div class="bar-chart" id="repeatChart"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Orders list -->
-  <div id="ordersContainer">
-    <div class="loading-overlay"><div class="spinner"></div><span>Loading orders…</span></div>
+  <!-- ── GALLERY TAB ── -->
+  <div id="tab-gallery" class="tab-panel">
+    <div class="gallery-wrap">
+      <div class="gallery-section">
+        <div class="chart-title" style="margin-bottom:0.8rem">🖼️ Upload to Gallery</div>
+        <p style="font-size:0.8rem;color:rgba(255,255,255,0.4);margin-bottom:1rem">Upload cake photos here — they will automatically appear in the gallery on the website.</p>
+        <div class="gallery-upload-zone" id="galleryUploadZone">
+          <input type="file" id="galleryFileInput" accept="image/*" multiple onchange="uploadGalleryImages(this)"/>
+          <div class="gallery-upload-text">📸 <strong>Tap to upload</strong> or drag photos here<br/><span style="font-size:0.78rem;opacity:0.7">JPG, PNG up to 5MB each · Multiple files allowed</span></div>
+        </div>
+        <div id="galleryUploadProgress" style="margin-top:0.8rem;font-size:0.8rem;color:var(--gold-light);display:none"></div>
+      </div>
+      <div class="gallery-section">
+        <div class="chart-title" style="margin-bottom:0.8rem">📸 Current Gallery Photos</div>
+        <div id="galleryAdminGrid" class="gallery-grid-admin"><div class="gallery-loading">Loading gallery…</div></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Floating refresh -->
-  <button class="fab" onclick="loadOrders()" title="Refresh">↻</button>
+  <!-- ── CLOSED DATES TAB ── -->
+  <div id="tab-closed" class="tab-panel">
+    <div class="closed-wrap">
+      <div class="closed-section">
+        <div class="chart-title" style="margin-bottom:0.8rem">🚫 Block a Date</div>
+        <p style="font-size:0.8rem;color:rgba(255,255,255,0.4);margin-bottom:1rem">Blocked dates will show a "Shop Closed" notice on the customer website — customers won't be able to select that date.</p>
+        <div class="closed-form">
+          <div class="closed-input-group">
+            <label>Date to Block</label>
+            <input class="closed-date-input" type="date" id="closedDateInput"/>
+          </div>
+          <div class="closed-input-group" style="flex:1;min-width:200px">
+            <label>Reason (shown to customer)</label>
+            <input class="closed-reason-input" type="text" id="closedReasonInput" placeholder="e.g. Shop Holiday, Diwali…" maxlength="60"/>
+          </div>
+          <button class="add-closed-btn" onclick="addClosedDate()">🚫 Block This Date</button>
+        </div>
+      </div>
+      <div class="closed-section">
+        <div class="chart-title" style="margin-bottom:0.8rem">📋 Currently Blocked Dates</div>
+        <div id="closedDatesList"><div class="no-closed">No dates blocked</div></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Lightbox -->
+<!-- LIGHTBOX -->
 <div id="lightbox" onclick="closeLightbox()">
-  <button class="lb-close" onclick="closeLightbox()">✕</button>
-  <img id="lbImg" src="" alt="Cake reference"/>
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="Cake reference"/>
 </div>
 
-<!-- Toast -->
-<div id="toast">✅ Saved!</div>
+<!-- PRINT RECEIPT (hidden, shown on print) -->
+<div class="print-receipt" id="printReceipt"></div>
 
 <script>
-// ─────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────
-let allOrders   = [];
-let currentTab  = 'today';
-let selectedDate = null;  // "YYYY-MM-DD"
-let confirmationResult = null;
-let resendTimer = null;
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+// ⚠️ SECURITY: Sirf yahi numbers login kar sakte hain — apna number daalo
+const ADMIN_NUMBERS = ['9876543210']; // <-- APNA 10-DIGIT NUMBER YAHAN LIKHO
 
-function todayStr(){
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function formatDate(str){
-  if(!str) return '—';
-  const [y,m,d] = str.split('-');
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${d} ${months[+m-1]} ${y}`;
-}
-function timeToMins(t){
-  if(!t||t==='Not specified') return 9999;
-  const clean = t.replace(/\s/g,'').toUpperCase();
-  const m = clean.match(/(\d+)(?::(\d+))?(AM|PM)/);
-  if(!m) return 9999;
-  let h = parseInt(m[1]), min = parseInt(m[2]||0);
-  if(m[3]==='PM' && h!==12) h+=12;
-  if(m[3]==='AM' && h===12) h=0;
-  return h*60+min;
-}
-function showToast(msg='✅ Saved!'){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2400);
-}
-function showErr(id, msg){
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-function hideErr(id){
-  document.getElementById(id).style.display = 'none';
-}
-
-// ─────────────────────────────────────────
-// OTP AUTH
-// ─────────────────────────────────────────
-let recaptchaVerifier = null;
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+let confirmationResult=null, countdownTimer=null;
 
 function setupRecaptcha(){
-  if(recaptchaVerifier) return;
-  recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-    size: 'invisible',
-    callback: () => {}
+  if(window.recaptchaVerifier) return;
+  window.recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha-container',{
+    size:'normal',callback(){document.getElementById('sendOtpBtn').disabled=false;}
   });
-  recaptchaVerifier.render();
+  window.recaptchaVerifier.render();
 }
 
+window.addEventListener('load',()=>{
+  auth.onAuthStateChanged(user=>{ if(user) showDashboard(); else setupRecaptcha(); });
+});
+
 async function sendOTP(){
-  const phone = document.getElementById('phoneInput').value.trim().replace(/\s/g,'');
-  hideErr('loginErr');
-
-  if(phone.length !== 10 || !/^\d{10}$/.test(phone)){
-    showErr('loginErr', '⚠️ Please enter a valid 10-digit phone number.');
-    return;
-  }
-
-  const btn = document.getElementById('btnSendOTP');
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
-
-  try {
-    setupRecaptcha();
-    const fullPhone = '+91' + phone;
-    confirmationResult = await auth.signInWithPhoneNumber(fullPhone, recaptchaVerifier);
-
-    // Switch to OTP step
-    document.getElementById('stepPhone').style.display = 'none';
-    document.getElementById('stepOTP').style.display   = 'block';
-    document.getElementById('dot1').classList.remove('active');
-    document.getElementById('dot2').classList.add('active');
-    document.getElementById('sentToNum').textContent = '+91 ' + phone;
-    document.getElementById('otp0').focus();
-    startResendTimer();
-
-  } catch(e){
-    let msg = '⚠️ Failed to send OTP. Try again.';
-    if(e.code === 'auth/invalid-phone-number') msg = '⚠️ Invalid phone number.';
-    if(e.code === 'auth/too-many-requests')    msg = '⚠️ Too many attempts. Please wait and try again.';
-    showErr('loginErr', msg);
-    btn.disabled = false;
-    btn.textContent = 'Send OTP 📲';
-    // Reset recaptcha
-    if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
+  const phone=document.getElementById('phoneInput').value.trim().replace(/\D/g,'');
+  if(phone.length!==10){alert('Please enter a valid 10-digit number.');return;}
+  if(!ADMIN_NUMBERS.includes(phone)){alert('❌ Access denied. Sirf authorized admin hi login kar sakta hai.');return;}
+  const btn=document.getElementById('sendOtpBtn');
+  btn.disabled=true; btn.textContent='Sending…';
+  try{
+    confirmationResult=await auth.signInWithPhoneNumber('+91'+phone,window.recaptchaVerifier);
+    document.getElementById('phoneStep').style.display='none';
+    document.getElementById('otpStep').style.display='block';
+    document.querySelector('#otpSentMsg strong').textContent='+91'+phone;
+    startCountdown(30);
+  }catch(err){
+    console.error(err); alert('OTP send failed: '+err.message);
+    btn.disabled=false; btn.textContent='Send OTP 📲';
+    window.recaptchaVerifier.clear(); window.recaptchaVerifier=null; setupRecaptcha();
   }
 }
 
 async function verifyOTP(){
-  const otp = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
-  hideErr('otpErr');
-
-  if(otp.length !== 6){
-    showErr('otpErr', '⚠️ Please enter all 6 digits.');
-    return;
-  }
-
-  const btn = document.getElementById('btnVerifyOTP');
-  btn.disabled = true;
-  btn.textContent = 'Verifying…';
-
-  try {
-    await confirmationResult.confirm(otp);
-    // Auth state observer will handle showing the app
-  } catch(e){
-    let msg = '⚠️ Wrong OTP. Please try again.';
-    if(e.code === 'auth/code-expired') msg = '⚠️ OTP expired. Please request a new one.';
-    showErr('otpErr', msg);
-    btn.disabled = false;
-    btn.textContent = 'Verify OTP ✅';
-  }
+  const otp=document.getElementById('otpInput').value.trim();
+  if(otp.length!==6){alert('Please enter 6-digit OTP.');return;}
+  const btn=document.getElementById('verifyBtn');
+  btn.disabled=true; btn.textContent='Verifying…';
+  try{ await confirmationResult.confirm(otp); }
+  catch(err){ console.error(err); alert('Invalid OTP.'); btn.disabled=false; btn.textContent='Verify OTP ✅'; }
 }
 
 async function resendOTP(){
-  // Reset recaptcha for fresh send
-  if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
-  document.getElementById('stepOTP').style.display = 'none';
-  document.getElementById('stepPhone').style.display = 'block';
-  document.getElementById('dot2').classList.remove('active');
-  document.getElementById('dot1').classList.add('active');
-  document.getElementById('btnSendOTP').disabled = false;
-  document.getElementById('btnSendOTP').textContent = 'Send OTP 📲';
-  clearInterval(resendTimer);
+  document.getElementById('resendRow').style.display='none';
+  document.getElementById('countdownMsg').style.display='block';
+  if(window.recaptchaVerifier){window.recaptchaVerifier.clear();window.recaptchaVerifier=null;}
+  document.getElementById('phoneStep').style.display='block';
+  document.getElementById('otpStep').style.display='none';
+  setupRecaptcha();
 }
 
 function backToPhone(){
-  document.getElementById('stepOTP').style.display = 'none';
-  document.getElementById('stepPhone').style.display = 'block';
-  document.getElementById('dot2').classList.remove('active');
-  document.getElementById('dot1').classList.add('active');
-  document.getElementById('btnSendOTP').disabled = false;
-  document.getElementById('btnSendOTP').textContent = 'Send OTP 📲';
-  hideErr('loginErr');
-  clearInterval(resendTimer);
-  if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
+  clearInterval(countdownTimer);
+  document.getElementById('phoneStep').style.display='block';
+  document.getElementById('otpStep').style.display='none';
+  const btn=document.getElementById('sendOtpBtn');
+  btn.disabled=false; btn.textContent='Send OTP 📲';
 }
 
-function startResendTimer(){
-  let secs = 30;
-  document.getElementById('resendTimer').style.display = 'block';
-  document.getElementById('resendLink').style.display  = 'none';
-  document.getElementById('timerCount').textContent = secs;
-  clearInterval(resendTimer);
-  resendTimer = setInterval(()=>{
-    secs--;
-    document.getElementById('timerCount').textContent = secs;
-    if(secs <= 0){
-      clearInterval(resendTimer);
-      document.getElementById('resendTimer').style.display = 'none';
-      document.getElementById('resendLink').style.display  = 'block';
-    }
-  }, 1000);
+function startCountdown(s){
+  const msg=document.getElementById('countdownMsg'),sec=document.getElementById('countdownSec'),row=document.getElementById('resendRow');
+  msg.style.display='block'; row.style.display='none'; sec.textContent=s;
+  clearInterval(countdownTimer);
+  countdownTimer=setInterval(()=>{
+    s--; sec.textContent=s;
+    if(s<=0){clearInterval(countdownTimer);msg.style.display='none';row.style.display='block';}
+  },1000);
 }
 
-// OTP box navigation
-function otpInput(idx){
-  const val = document.getElementById('otp'+idx).value;
-  if(val && idx < 5) document.getElementById('otp'+(idx+1)).focus();
-  // Auto verify when all 6 entered
-  const otp = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
-  if(otp.length === 6) verifyOTP();
-}
-function otpBack(e, idx){
-  if(e.key === 'Backspace' && !document.getElementById('otp'+idx).value && idx > 0){
-    document.getElementById('otp'+(idx-1)).focus();
-  }
-}
-
-// ─────────────────────────────────────────
-// Auth state observer
-// ─────────────────────────────────────────
-auth.onAuthStateChanged(user => {
-  if(user){
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    const d = new Date();
-    document.getElementById('topDate').textContent =
-      d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-    loadOrders();
-  } else {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-  }
-});
-
-function doLogout(){
-  if(confirm('Log out of admin?')) auth.signOut();
+function logoutAdmin(){
+  if(!confirm('Logout?')) return;
+  auth.signOut().then(()=>{
+    document.getElementById('dashboard').style.display='none';
+    document.getElementById('authScreen').style.display='flex';
+    document.getElementById('phoneStep').style.display='block';
+    document.getElementById('otpStep').style.display='none';
+    document.getElementById('phoneInput').value='';
+    allOrders=[]; if(unsubOrders){unsubOrders();unsubOrders=null;}
+    window.recaptchaVerifier=null; setupRecaptcha();
+  });
 }
 
-// ─────────────────────────────────────────
-// Load orders from Firestore
-// ─────────────────────────────────────────
-async function loadOrders(){
-  document.getElementById('ordersContainer').innerHTML =
-    `<div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div>`;
-  try {
-    const snap = await db.collection('orders').orderBy('createdAt','desc').limit(500).get();
-    allOrders = snap.docs.map(d => ({id:d.id,...d.data()}));
-    updateStats();
-    renderTab();
-  } catch(e){
-    document.getElementById('ordersContainer').innerHTML =
-      `<div class="empty-state"><div>⚠️</div><p>Could not load orders.<br>Check your Firebase config.</p></div>`;
-  }
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function switchTab(tab, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn-main').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(tab==='reports') buildReports();
+  if(tab==='gallery') loadAdminGallery();
+  if(tab==='closed') loadClosedDates();
 }
 
-// ─────────────────────────────────────────
-// Stats
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════
+// DASHBOARD LOAD
+// ═══════════════════════════════════════════════
+let allOrders=[], currentFilter='today', unsubOrders=null;
+
+function showDashboard(){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  loadOrders();
+  loadClosedDates();
+}
+
+function loadOrders(){
+  document.getElementById('ordersLoading').style.display='block';
+  unsubOrders=db.collection('orders').orderBy('createdAt','desc').onSnapshot(snap=>{
+    allOrders=snap.docs.map(d=>({id:d.id,...d.data()}));
+    updateStats(); renderOrders();
+    document.getElementById('ordersLoading').style.display='none';
+  },err=>{
+    console.error(err);
+    document.getElementById('ordersLoading').textContent='⚠️ Failed to load orders.';
+  });
+}
+
+function todayStr(){return new Date().toISOString().split('T')[0];}
+
 function updateStats(){
-  const today = todayStr();
-  document.getElementById('sTotal').textContent   = allOrders.length;
-  document.getElementById('sToday').textContent   = allOrders.filter(o=>o.pickupDate===today).length;
-  document.getElementById('sPending').textContent = allOrders.filter(o=>o.status==='Pending').length;
-  document.getElementById('sReady').textContent   = allOrders.filter(o=>o.status==='Ready').length;
+  const today=todayStr();
+  const pending=allOrders.filter(o=>o.status==='Pending').length;
+  document.getElementById('statTotal').textContent=allOrders.length;
+  document.getElementById('statToday').textContent=allOrders.filter(o=>o.pickupDate===today).length;
+  document.getElementById('statPending').textContent=pending;
+  document.getElementById('statReady').textContent=allOrders.filter(o=>o.status==='Ready').length;
+  // Pending badge in top bar
+  const badge=document.getElementById('pendingBadge');
+  if(pending>0){badge.style.display='inline';badge.textContent=pending+' pending';}
+  else badge.style.display='none';
 }
 
-// ─────────────────────────────────────────
-// Tabs
-// ─────────────────────────────────────────
-function switchTab(tab){
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
-  const sb = document.getElementById('searchBar');
-  if(tab === 'search'){
-    sb.classList.add('visible');
-    document.getElementById('searchInput').focus();
-    doSearch(); // show current search state
-    return;
-  } else {
-    sb.classList.remove('visible');
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  else{
+    const found=document.querySelector(`[data-filter="${f}"]`);
+    if(found) found.classList.add('active');
   }
-  renderTab();
+  renderOrders();
 }
 
-function renderTab(){
-  const today = todayStr();
-  let orders = [...allOrders];
-  if(currentTab === 'today'){
-    orders = orders.filter(o=>o.pickupDate===today)
-      .sort((a,b)=>timeToMins(a.pickupTime)-timeToMins(b.pickupTime));
-    renderOrders(orders, true);
-  } else if(currentTab === 'pending'){
-    orders = orders.filter(o=>o.status==='Pending'||o.status==='Baking');
-    renderOrders(orders);
-  } else {
-    renderOrders(orders);
-  }
+function clearFilters(){
+  currentFilter='today';
+  document.getElementById('searchBox').value='';
+  document.getElementById('dateFilter').value='';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-filter="today"]').classList.add('active');
+  renderOrders();
 }
 
-// ─────────────────────────────────────────
-// Search + Date filter
-// ─────────────────────────────────────────
-function doSearch(){
-  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
-  const date = selectedDate;
+function renderOrders(){
+  const search=(document.getElementById('searchBox').value||'').toLowerCase();
+  const dateFilter=document.getElementById('dateFilter').value;
+  const today=todayStr();
 
-  let results = [...allOrders];
+  // Build phone order count map for repeat detection
+  const phoneCount={};
+  allOrders.forEach(o=>{const p=(o.phone||'').replace(/\D/g,'');phoneCount[p]=(phoneCount[p]||0)+1;});
 
-  // Filter by date if selected
-  if(date){
-    results = results.filter(o => o.pickupDate === date);
-  }
+  let list=[...allOrders];
+  if(currentFilter==='today') list=list.filter(o=>o.pickupDate===today);
+  if(currentFilter==='pending') list=list.filter(o=>o.status==='Pending');
+  if(currentFilter==='ready') list=list.filter(o=>o.status==='Ready');
+  if(dateFilter) list=list.filter(o=>o.pickupDate===dateFilter);
+  if(search) list=list.filter(o=>(o.name||'').toLowerCase().includes(search)||(o.phone||'').includes(search)||(o.orderId||o.id||'').toLowerCase().includes(search));
 
-  // Filter by text query
-  if(q){
-    results = results.filter(o =>
-      (o.name||'').toLowerCase().includes(q) ||
-      (o.phone||'').includes(q) ||
-      (o.orderId||'').toLowerCase().includes(q) ||
-      (o.flavour||'').toLowerCase().includes(q)
-    );
-  }
-
-  // If neither filter active show placeholder
-  if(!q && !date){
-    document.getElementById('ordersContainer').innerHTML =
-      `<div class="empty-state"><div class="empty-icon">🔍</div><p>Type a name / phone / order ID<br>or pick a date to filter orders</p></div>`;
-    return;
-  }
-
-  renderOrders(results);
+  const container=document.getElementById('ordersList');
+  if(!list.length){container.innerHTML='<div class="no-orders">No orders found.</div>';return;}
+  container.innerHTML=list.map(o=>buildCard(o,phoneCount)).join('');
 }
 
-function onDateChange(){
-  const val = document.getElementById('datePickerInput').value; // "YYYY-MM-DD"
-  if(!val){ clearDate(); return; }
-  selectedDate = val;
-  document.getElementById('dateBtnText').textContent = formatDate(val);
-  document.getElementById('dateBtnLabel').classList.add('active');
-  document.getElementById('clearDateBtn').style.display = 'block';
-  doSearch();
-}
+// ═══════════════════════════════════════════════
+// ORDER CARD
+// ═══════════════════════════════════════════════
+function buildCard(o,phoneCount){
+  const id=o.orderId||o.id;
+  const status=o.status||'Pending';
+  const advance=o.advancePaid||0;
+  const remPaid=!!o.remainingPaid;
+  const phone=(o.phone||'').replace(/\D/g,'');
+  const isRepeat=phoneCount&&phoneCount[phone]>1;
 
-function clearDate(){
-  selectedDate = null;
-  document.getElementById('datePickerInput').value = '';
-  document.getElementById('dateBtnText').textContent = 'Pick Date';
-  document.getElementById('dateBtnLabel').classList.remove('active');
-  document.getElementById('clearDateBtn').style.display = 'none';
-  doSearch();
-}
-
-// ─────────────────────────────────────────
-// Render order cards
-// ─────────────────────────────────────────
-function renderOrders(orders, showTimeHeader=false){
-  const container = document.getElementById('ordersContainer');
-  if(!orders.length){
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎂</div><p>No orders found.</p></div>`;
-    return;
-  }
-  container.innerHTML = orders.map(o => cardHTML(o, showTimeHeader)).join('');
-}
-
-function cardHTML(o){
-  const status  = o.status||'Pending';
-  const advance = o.advancePaid||0;
-  const remPaid = o.remainingPaid||false;
-  const imgHTML = o.imageURL
-    ? `<img class="cake-img" src="${o.imageURL}" alt="ref" onclick="openLightbox('${o.imageURL}')" title="Tap to enlarge"/>`
-    : `<div class="no-img">🎨</div>`;
-  const notes = [o.cakeMessage&&`✍️ "${o.cakeMessage}"`, o.designDetails&&`📝 ${o.designDetails}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
+  const imgBlock=(o.imageURL&&o.imageURL.trim())
+    ?`<div class="cake-image-wrap"><div class="detail-label">📸 Reference Image</div>
+       <img class="cake-image-thumb" src="${escHtml(o.imageURL)}" alt="ref"
+        onclick="openLightbox('${escHtml(o.imageURL)}')" loading="lazy"
+        onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>⚠️ Image unavailable</div>'"/></div>`
+    :`<div class="cake-image-wrap"><div class="no-image">No reference image</div></div>`;
 
   return `
-<div class="order-card status-${status}" id="card-${o.orderId}">
-  <div class="card-header">
+<div class="order-card${isRepeat?' repeat-customer':''}" id="card_${id}">
+  <div class="order-head" onclick="toggleCard('${id}')">
     <div>
-      <div class="order-id">${o.orderId||o.id}</div>
-      <span class="status-badge badge-${status}">${status}</span>
+      <div class="order-id">${escHtml(id)}</div>
+      <div class="order-name">${escHtml(o.name||'—')}${isRepeat?'<span class="repeat-tag">🔁 Repeat</span>':''}</div>
+      <div class="order-meta">📞 ${escHtml(o.phone||'—')} &nbsp;·&nbsp; 📅 ${escHtml(o.pickupDate||'—')} &nbsp;·&nbsp; 🕐 ${escHtml(o.pickupTime||'—')}</div>
     </div>
-    <div style="text-align:right">
-      <div class="order-time-badge">🕐 ${o.pickupTime||'—'}</div>
-      <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">📅 ${formatDate(o.pickupDate)}</div>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <span class="order-status s-${status}">${status}</span>
+      <span class="chevron">▼</span>
     </div>
   </div>
-  <div class="card-body">
-    <div>
-      <div class="customer-name">${o.name||'—'}</div>
-      <a class="customer-phone" href="tel:${o.phone}">${o.phone||'—'}</a>
-      <div class="cake-details">
-        <strong>${o.flavour||'—'}</strong> &nbsp;·&nbsp; ${o.weight||'—'}
-        ${o.occasion?`&nbsp;·&nbsp; 🎉 ${o.occasion}`:''}
-      </div>
+  <div class="order-body">
+    <div class="detail-grid">
+      <div class="detail-item"><div class="detail-label">Flavour</div><div class="detail-value">${escHtml(o.flavour||'—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Weight</div><div class="detail-value">${escHtml(o.weight||'—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Occasion</div><div class="detail-value">${escHtml(o.occasion||'—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Pickup Date</div><div class="detail-value">${escHtml(o.pickupDate||'—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Pickup Time</div><div class="detail-value">${escHtml(o.pickupTime||'—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Cake Message</div><div class="detail-value">${escHtml(o.cakeMessage||'—')}</div></div>
+      <div class="detail-item" style="grid-column:1/-1"><div class="detail-label">Design Details</div><div class="detail-value">${escHtml(o.designDetails||'—')}</div></div>
     </div>
-    ${imgHTML}
-  </div>
-  ${notes?`<div class="card-notes">${notes}</div>`:''}
-  <div class="card-controls">
-    <select class="status-select" id="st-${o.orderId}">
-      ${['Pending','Baking','Ready','Delivered'].map(s=>`<option${s===status?' selected':''}>${s}</option>`).join('')}
-    </select>
-    <div class="payment-block">
-      <div>
-        <div class="pay-label">Advance ₹</div>
-        <input class="pay-input" type="number" min="0" id="adv-${o.orderId}" value="${advance}" placeholder="0"/>
-      </div>
-      <label class="remaining-toggle">
-        <input type="checkbox" id="rem-${o.orderId}" ${remPaid?'checked':''}/> Remaining Paid
-      </label>
+    ${imgBlock}
+    <!-- Admin Note -->
+    <div class="detail-label" style="margin-bottom:0.35rem">📝 Admin Note (internal)</div>
+    <textarea class="note-area" id="note_${id}" placeholder="Write internal notes about this order…">${escHtml(o.adminNote||'')}</textarea>
+    <!-- Status -->
+    <div class="controls-row">
+      <select class="status-select" id="status_${id}">
+        <option ${status==='Pending'?'selected':''}>Pending</option>
+        <option ${status==='Baking'?'selected':''}>Baking</option>
+        <option ${status==='Ready'?'selected':''}>Ready</option>
+        <option ${status==='Delivered'?'selected':''}>Delivered</option>
+      </select>
+      <button class="save-btn" onclick="saveOrder('${id}')">💾 Save</button>
+      <span class="save-indicator" id="saved_${id}">✅ Saved!</span>
+      <button class="print-btn" onclick="printOrder('${id}')">🖨️ Print</button>
+      <button class="delete-btn" onclick="deleteOrder('${id}')">🗑️ Delete</button>
     </div>
-    <button class="btn-save" onclick="saveOrder('${o.orderId}')">💾 Save</button>
-    <button class="btn-sm" onclick="whatsapp('${o.phone||''}','${o.orderId||o.id}','${o.name||''}','${status}')" style="border-color:var(--teal);color:var(--teal-light)">💬 WA</button>
+    <!-- Payment -->
+    <div class="payment-row">
+      <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Advance ₹</label>
+      <input class="advance-input" id="adv_${id}" type="number" placeholder="₹" value="${advance||''}" min="0"/>
+      <button class="pay-toggle ${remPaid?'paid':''}" id="rem_${id}" onclick="toggleRemaining('${id}')">
+        ${remPaid?'✅ Remaining Paid':'💳 Mark Remaining Paid'}
+      </button>
+    </div>
+    <!-- WA -->
+    <a class="wa-update-btn" href="${buildWaLink(o)}" target="_blank" id="waLink_${id}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Send WhatsApp Update
+    </a>
   </div>
 </div>`;
 }
 
-// ─────────────────────────────────────────
-// Save order
-// ─────────────────────────────────────────
-async function saveOrder(orderId){
-  const btn = document.querySelector(`#card-${orderId} .btn-save`);
-  btn.disabled=true; btn.textContent='⏳…';
-  const status  = document.getElementById(`st-${orderId}`).value;
-  const advance = parseFloat(document.getElementById(`adv-${orderId}`).value)||0;
-  const remPaid = document.getElementById(`rem-${orderId}`).checked;
-  try {
-    await db.collection('orders').doc(orderId).update({
-      status, advancePaid:advance, remainingPaid:remPaid,
-      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    const idx = allOrders.findIndex(o=>o.orderId===orderId||o.id===orderId);
-    if(idx>=0) Object.assign(allOrders[idx],{status,advancePaid:advance,remainingPaid:remPaid});
+function toggleCard(id){document.getElementById('card_'+id).classList.toggle('expanded');}
+
+// Save status + note + advance together
+async function saveOrder(id){
+  const status=document.getElementById('status_'+id).value;
+  const note=(document.getElementById('note_'+id).value||'').trim();
+  const advance=parseFloat(document.getElementById('adv_'+id).value)||0;
+  try{
+    await db.collection('orders').doc(id).update({status,adminNote:note,advancePaid:advance});
+    const o=allOrders.find(x=>(x.orderId||x.id)===id);
+    if(o){o.status=status;o.adminNote=note;o.advancePaid=advance;}
+    const ind=document.getElementById('saved_'+id);
+    ind.style.display='inline'; setTimeout(()=>{ind.style.display='none';},2000);
+    const badge=document.querySelector(`#card_${id} .order-status`);
+    if(badge){badge.className=`order-status s-${status}`;badge.textContent=status;}
+    const wa=document.getElementById('waLink_'+id);
+    if(wa){const o2=allOrders.find(x=>(x.orderId||x.id)===id);if(o2)wa.href=buildWaLink(o2);}
     updateStats();
-    const card = document.getElementById(`card-${orderId}`);
-    card.className = card.className.replace(/status-\w+/,`status-${status}`);
-    card.querySelector('.status-badge').className = `status-badge badge-${status}`;
-    card.querySelector('.status-badge').textContent = status;
-    showToast('✅ Order updated!');
-  } catch(e){
-    showToast('⚠️ Save failed');
-  } finally {
-    btn.disabled=false; btn.textContent='💾 Save';
+  }catch(err){console.error(err);alert('Save failed: '+err.message);}
+}
+
+async function toggleRemaining(id){
+  const o=allOrders.find(x=>(x.orderId||x.id)===id);
+  if(!o) return;
+  const nv=!o.remainingPaid;
+  try{
+    await db.collection('orders').doc(id).update({remainingPaid:nv});
+    o.remainingPaid=nv;
+    const btn=document.getElementById('rem_'+id);
+    btn.textContent=nv?'✅ Remaining Paid':'💳 Mark Remaining Paid';
+    btn.className='pay-toggle'+(nv?' paid':'');
+  }catch(err){console.error(err);alert('Save failed: '+err.message);}
+}
+
+async function deleteOrder(id){
+  const o=allOrders.find(x=>(x.orderId||x.id)===id);
+  const name=o?o.name:'this order';
+  if(!confirm(`⚠️ Delete order for "${name}"?\n\nThis cannot be undone.`)) return;
+  try{
+    await db.collection('orders').doc(id).delete();
+    // Firestore listener will update allOrders automatically
+    const card=document.getElementById('card_'+id);
+    if(card) card.remove();
+  }catch(err){console.error(err);alert('Delete failed: '+err.message);}
+}
+
+function printOrder(id){
+  const o=allOrders.find(x=>(x.orderId||x.id)===id);
+  if(!o) return;
+  const receipt=document.getElementById('printReceipt');
+  receipt.innerHTML=`
+    <div style="font-family:sans-serif;padding:20px;max-width:400px;margin:auto">
+      <h2 style="text-align:center;margin-bottom:4px">🎂 Cakes & Bakes</h2>
+      <p style="text-align:center;font-size:12px;color:#666;margin-bottom:16px">By Gourav Sachdeva · Ferozepur</p>
+      <hr/>
+      <table style="width:100%;font-size:13px;margin-top:12px;border-collapse:collapse">
+        <tr><td style="padding:4px 0;color:#666;width:40%">Order ID</td><td style="font-weight:700">${o.orderId||o.id}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Customer</td><td>${o.name||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Phone</td><td>${o.phone||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Flavour</td><td>${o.flavour||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Weight</td><td>${o.weight||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Pickup Date</td><td>${o.pickupDate||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Pickup Time</td><td>${o.pickupTime||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Cake Message</td><td>${o.cakeMessage||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Design</td><td>${o.designDetails||'—'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Advance Paid</td><td>₹${o.advancePaid||0}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Remaining</td><td>${o.remainingPaid?'✅ Paid':'⏳ Pending'}</td></tr>
+        <tr><td style="padding:4px 0;color:#666">Status</td><td>${o.status||'Pending'}</td></tr>
+        ${o.adminNote?`<tr><td style="padding:4px 0;color:#666">Note</td><td>${o.adminNote}</td></tr>`:''}
+      </table>
+      <hr style="margin-top:16px"/>
+      <p style="text-align:center;font-size:11px;color:#999;margin-top:8px">Printed on ${new Date().toLocaleString('en-IN')}</p>
+    </div>`;
+  window.print();
+}
+
+// ═══════════════════════════════════════════════
+// WHATSAPP
+// ═══════════════════════════════════════════════
+function buildWaLink(o){
+  const clean=(o.phone||'').replace(/\D/g,'');
+  const num=clean.length===10?'91'+clean:clean;
+  const status=o.status||'Pending';
+  const msg=`🎂 *Cakes & Bakes – Order Update*\n\nHi ${o.name||''}! Here's your order update:\n\n`+
+    `📋 *Order ID:* ${o.orderId||o.id}\n`+
+    `🎂 *Cake:* ${o.flavour||'—'} · ${o.weight||'—'}\n`+
+    `📅 *Pickup:* ${o.pickupDate||'—'} at ${o.pickupTime||'—'}\n`+
+    `📦 *Status:* ${status}\n\n`+statusMsg(status)+
+    `\n_Cakes & Bakes by Gourav Sachdeva, Ferozepur_`;
+  return `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+}
+function statusMsg(s){
+  if(s==='Pending') return 'Your order is confirmed and being scheduled! 🙏\n\n';
+  if(s==='Baking')  return 'Your cake is now being baked with love! 🔥\n\n';
+  if(s==='Ready')   return '✅ Your cake is READY for pickup! See you soon!\n\n';
+  if(s==='Delivered') return '🎉 Delivered! Hope you loved it! Thank you!\n\n';
+  return '';
+}
+
+// ═══════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════
+function buildReports(){
+  const today=todayStr();
+  const now=new Date();
+  const weekAgo=new Date(now-7*86400000);
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
+
+  // Revenue
+  const totalAdv=allOrders.reduce((s,o)=>s+(o.advancePaid||0),0);
+  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const weekAdv=allOrders.filter(o=>o.createdAt&&o.createdAt.toDate&&o.createdAt.toDate()>=weekAgo).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const unpaid=allOrders.filter(o=>!o.remainingPaid&&o.status!=='Delivered').length;
+
+  document.getElementById('totalRevenue').textContent='₹'+totalAdv.toLocaleString('en-IN');
+  document.getElementById('revToday').textContent='₹'+todayAdv.toLocaleString('en-IN');
+  document.getElementById('revWeek').textContent='₹'+weekAdv.toLocaleString('en-IN');
+  document.getElementById('revMonth').textContent='₹'+monthAdv.toLocaleString('en-IN');
+  document.getElementById('revPending').textContent=unpaid+' orders';
+
+  // Status chart
+  const statuses=['Pending','Baking','Ready','Delivered'];
+  const statusCounts={}; statuses.forEach(s=>statusCounts[s]=0);
+  allOrders.forEach(o=>{ if(statusCounts[o.status]!==undefined) statusCounts[o.status]++; });
+  const maxS=Math.max(...Object.values(statusCounts),1);
+  document.getElementById('statusChart').innerHTML=statuses.map(s=>`
+    <div class="bar-row">
+      <div class="bar-label">${s}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(statusCounts[s]/maxS*100).toFixed(1)}%">${statusCounts[s]}</div></div>
+    </div>`).join('');
+
+  // Flavour chart
+  const flavCount={};
+  allOrders.forEach(o=>{ const f=(o.flavour||'Unknown').split(' (')[0]; flavCount[f]=(flavCount[f]||0)+1; });
+  const top10=Object.entries(flavCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxF=top10.length?top10[0][1]:1;
+  document.getElementById('flavourChart').innerHTML=top10.map(([f,c])=>`
+    <div class="bar-row">
+      <div class="bar-label" style="font-size:0.68rem">${f}</div>
+      <div class="bar-track"><div class="bar-fill gold" style="width:${(c/maxF*100).toFixed(1)}%">${c}</div></div>
+    </div>`).join('');
+
+  // Last 7 days chart
+  const days7=[]; const labels7=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now-i*86400000);
+    const ds=d.toISOString().split('T')[0];
+    const label=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric'});
+    days7.push({ds,label,count:allOrders.filter(o=>o.pickupDate===ds).length});
+  }
+  const maxD=Math.max(...days7.map(d=>d.count),1);
+  document.getElementById('weekChart').innerHTML=days7.map(d=>`
+    <div class="bar-row">
+      <div class="bar-label" style="font-size:0.68rem">${d.label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.count/maxD*100).toFixed(1)}%">${d.count}</div></div>
+    </div>`).join('');
+
+  // Repeat customers
+  const phoneCount={};
+  allOrders.forEach(o=>{const p=(o.phone||'').replace(/\D/g,'');phoneCount[p]=(phoneCount[p]||0)+1;});
+  const repeats=Object.entries(phoneCount).filter(([,c])=>c>1).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!repeats.length){
+    document.getElementById('repeatChart').innerHTML='<div style="font-size:0.82rem;color:rgba(255,255,255,0.3);padding:1rem 0">No repeat customers yet</div>';
+  } else {
+    const maxR=repeats[0][1];
+    // Map phone to names
+    const phoneNames={};
+    allOrders.forEach(o=>{const p=(o.phone||'').replace(/\D/g,'');if(!phoneNames[p])phoneNames[p]=o.name||p;});
+    document.getElementById('repeatChart').innerHTML=repeats.map(([p,c])=>`
+      <div class="bar-row">
+        <div class="bar-label" style="font-size:0.68rem">${phoneNames[p]||p}</div>
+        <div class="bar-track"><div class="bar-fill gold" style="width:${(c/maxR*100).toFixed(1)}%">${c} orders</div></div>
+      </div>`).join('');
   }
 }
 
-// ─────────────────────────────────────────
-// WhatsApp shortcut
-// ─────────────────────────────────────────
-function whatsapp(phone, orderId, name, status){
-  if(!phone){alert('No phone number for this order.');return;}
-  const clean = phone.replace(/\D/g,'');
-  const num = clean.length===10 ? '91'+clean : clean;
-  const msg = `🎂 *Cakes & Bakes Update*\n\nHi ${name}! Your order *${orderId}* is now *${status}*.\n\nThank you for ordering with us! 🙏`;
-  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
+// ═══════════════════════════════════════════════
+// GALLERY MANAGER
+// ═══════════════════════════════════════════════
+async function uploadGalleryImages(input){
+  const files=Array.from(input.files);
+  if(!files.length) return;
+  const progress=document.getElementById('galleryUploadProgress');
+  progress.style.display='block';
+  let done=0;
+  for(const file of files){
+    const ext=file.name.split('.').pop().toLowerCase()||'jpg';
+    const name='gallery_'+Date.now()+'_'+Math.random().toString(36).substr(2,5)+'.'+ext;
+    try{
+      progress.textContent=`Uploading ${done+1}/${files.length}: ${file.name}…`;
+      const ref=storage.ref('gallery/'+name);
+      const snap=await ref.put(file);
+      const url=await snap.ref.getDownloadURL();
+      // Save to Firestore
+      await db.collection('gallery').add({url,name,uploadedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      done++;
+    }catch(err){console.error(err);alert('Upload failed for '+file.name+': '+err.message);}
+  }
+  progress.textContent=`✅ ${done} photo${done!==1?'s':''} uploaded!`;
+  setTimeout(()=>{progress.style.display='none';},3000);
+  input.value='';
+  loadAdminGallery();
 }
 
-// ─────────────────────────────────────────
-// Lightbox
-// ─────────────────────────────────────────
+async function loadAdminGallery(){
+  const grid=document.getElementById('galleryAdminGrid');
+  grid.innerHTML='<div class="gallery-loading">Loading…</div>';
+  try{
+    const snap=await db.collection('gallery').orderBy('uploadedAt','desc').get();
+    if(snap.empty){grid.innerHTML='<div class="gallery-loading">No photos yet. Upload some above!</div>';return;}
+    grid.innerHTML=snap.docs.map(d=>{
+      const {url,name}=d.data();
+      const docId=d.id;
+      return `<div class="gallery-item-admin" id="gitem_${docId}">
+        <img src="${escHtml(url)}" alt="${escHtml(name||'')}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1 1%22/>'"/>
+        <div class="del-overlay">
+          <button onclick="deleteGalleryPhoto('${docId}','${escHtml(url)}')">🗑️ Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(err){console.error(err);grid.innerHTML='<div class="gallery-loading">⚠️ Failed to load</div>';}
+}
+
+async function deleteGalleryPhoto(docId,url){
+  if(!confirm('Delete this photo from gallery?')) return;
+  try{
+    await db.collection('gallery').doc(docId).delete();
+    // Try to delete from storage too (may fail if URL format differs, that's ok)
+    try{ await storage.refFromURL(url).delete(); }catch(e){console.warn('Storage delete:',e.message);}
+    const el=document.getElementById('gitem_'+docId);
+    if(el) el.remove();
+  }catch(err){console.error(err);alert('Delete failed: '+err.message);}
+}
+
+// ═══════════════════════════════════════════════
+// CLOSED DATES
+// ═══════════════════════════════════════════════
+async function addClosedDate(){
+  const dateVal=document.getElementById('closedDateInput').value;
+  const reason=document.getElementById('closedReasonInput').value.trim()||'Shop Closed';
+  if(!dateVal){alert('Please select a date.');return;}
+  try{
+    await db.collection('closedDates').doc(dateVal).set({date:dateVal,reason,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    document.getElementById('closedDateInput').value='';
+    document.getElementById('closedReasonInput').value='';
+    loadClosedDates();
+  }catch(err){console.error(err);alert('Failed: '+err.message);}
+}
+
+async function loadClosedDates(){
+  try{
+    const snap=await db.collection('closedDates').orderBy('date','asc').get();
+    const list=document.getElementById('closedDatesList');
+    if(snap.empty){list.innerHTML='<div class="no-closed">No dates blocked</div>';return;}
+    list.innerHTML=snap.docs.map(d=>{
+      const {date,reason}=d.data();
+      const pretty=new Date(date+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      return `<div class="closed-item">
+        <div class="closed-item-info">
+          <div class="closed-item-date">🚫 ${pretty}</div>
+          <div class="closed-item-reason">${escHtml(reason)}</div>
+        </div>
+        <button class="closed-item-remove" onclick="removeClosedDate('${date}')">Remove</button>
+      </div>`;
+    }).join('');
+  }catch(err){console.error(err);}
+}
+
+async function removeClosedDate(date){
+  if(!confirm(`Remove block on ${date}?`)) return;
+  try{
+    await db.collection('closedDates').doc(date).delete();
+    loadClosedDates();
+  }catch(err){console.error(err);alert('Failed: '+err.message);}
+}
+
+// ═══════════════════════════════════════════════
+// LIGHTBOX
+// ═══════════════════════════════════════════════
 function openLightbox(url){
-  document.getElementById('lbImg').src = url;
+  document.getElementById('lightboxImg').src=url;
   document.getElementById('lightbox').classList.add('open');
 }
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function escHtml(str){
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 </script>
 </body>
