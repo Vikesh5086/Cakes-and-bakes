@@ -305,6 +305,7 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
       <button class="filter-btn" data-filter="all" onclick="setFilter('all',this)">📋 All</button>
       <input class="search-box" id="searchBox" type="text" placeholder="🔍 Name / phone / ID" oninput="renderOrders()"/>
       <button class="filter-btn" data-filter="pending" onclick="setFilter('pending',this)">⏳ Pending</button>
+      <button class="filter-btn" data-filter="delivered" onclick="setFilter('delivered',this)">✅ Delivered</button>
       <input class="date-input" id="dateFilter" type="date" onchange="renderOrders()" title="Filter by pickup date"/>
       <button class="clear-btn" onclick="clearFilters()">✕ Clear</button>
     </div>
@@ -583,12 +584,41 @@ function renderOrders(){
   if(currentFilter==='today') list=list.filter(o=>o.pickupDate===today);
   if(currentFilter==='pending') list=list.filter(o=>o.status==='Pending');
   if(currentFilter==='ready') list=list.filter(o=>o.status==='Ready');
+  if(currentFilter==='delivered') list=list.filter(o=>o.status==='Delivered');
   if(dateFilter) list=list.filter(o=>o.pickupDate===dateFilter);
   if(search) list=list.filter(o=>(o.name||'').toLowerCase().includes(search)||(o.phone||'').includes(search)||(o.orderId||o.id||'').toLowerCase().includes(search));
 
   const container=document.getElementById('ordersList');
   if(!list.length){container.innerHTML='<div class="no-orders">No orders found.</div>';return;}
-  container.innerHTML=list.map(o=>buildCard(o,phoneCount)).join('');
+
+  // Split: active (non-delivered) and delivered
+  const active=list.filter(o=>o.status!=='Delivered');
+  const delivered=list.filter(o=>o.status==='Delivered');
+
+  let html='';
+  if(active.length) html+=active.map(o=>buildCard(o,phoneCount)).join('');
+
+  // Delivered section — collapsed by default
+  if(delivered.length){
+    html+=`<div style="margin:1.2rem 0 0.6rem">
+      <button onclick="toggleDelivered()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.45);font-size:0.75rem;letter-spacing:0.1em;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;width:100%;text-align:left" id="deliveredToggleBtn">
+        📦 Delivered Orders (${delivered.length}) — Click to show
+      </button>
+    </div>
+    <div id="deliveredSection" style="display:none">${delivered.map(o=>buildCard(o,phoneCount)).join('')}</div>`;
+  }
+
+  container.innerHTML=html;
+}
+
+function toggleDelivered(){
+  const sec=document.getElementById('deliveredSection');
+  const btn=document.getElementById('deliveredToggleBtn');
+  if(!sec) return;
+  const isHidden=sec.style.display==='none';
+  sec.style.display=isHidden?'block':'none';
+  const count=sec.querySelectorAll('.order-card').length;
+  btn.textContent=isHidden?`📦 Delivered Orders (${count}) — Click to hide`:`📦 Delivered Orders (${count}) — Click to show`;
 }
 
 // ═══════════════════════════════════════════════
@@ -651,8 +681,11 @@ function buildCard(o,phoneCount){
     </div>
     <!-- Payment -->
     <div class="payment-row">
+      <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Total ₹</label>
+      <input class="advance-input" id="amt_${id}" type="number" placeholder="Cake price" value="${o.cakeAmount||''}" min="0" style="width:120px" title="Total cake price"/>
       <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Advance ₹</label>
-      <input class="advance-input" id="adv_${id}" type="number" placeholder="₹" value="${advance||''}" min="0"/>
+      <input class="advance-input" id="adv_${id}" type="number" placeholder="Advance" value="${advance||''}" min="0" title="Advance paid"/>
+      ${o.paymentMethod==='upi'?'<span style="font-size:0.72rem;background:rgba(26,92,82,0.2);border:1px solid rgba(26,92,82,0.4);color:#2e8b7a;padding:0.25rem 0.6rem;border-radius:12px">📲 UPI Advance</span>':o.paymentMethod==='cod'?'<span style="font-size:0.72rem;background:rgba(201,151,58,0.15);border:1px solid rgba(201,151,58,0.3);color:#c9973a;padding:0.25rem 0.6rem;border-radius:12px">💵 Pay at Delivery</span>':''}
       <button class="pay-toggle ${remPaid?'paid':''}" id="rem_${id}" onclick="toggleRemaining('${id}')">
         ${remPaid?'✅ Remaining Paid':'💳 Mark Remaining Paid'}
       </button>
@@ -673,10 +706,20 @@ async function saveOrder(id){
   const status=document.getElementById('status_'+id).value;
   const note=(document.getElementById('note_'+id).value||'').trim();
   const advance=parseFloat(document.getElementById('adv_'+id).value)||0;
+  const cakeAmount=parseFloat(document.getElementById('amt_'+id).value)||0;
+  const o=allOrders.find(x=>(x.orderId||x.id)===id);
+
+  // If marking Delivered — auto mark remaining as paid too
+  const updateData={status,adminNote:note,advancePaid:advance,cakeAmount};
+  if(status==='Delivered' && o && !o.remainingPaid){
+    if(confirm('Mark remaining payment as received too?')){
+      updateData.remainingPaid=true;
+    }
+  }
+
   try{
-    await db.collection('orders').doc(id).update({status,adminNote:note,advancePaid:advance});
-    const o=allOrders.find(x=>(x.orderId||x.id)===id);
-    if(o){o.status=status;o.adminNote=note;o.advancePaid=advance;}
+    await db.collection('orders').doc(id).update(updateData);
+    if(o){o.status=status;o.adminNote=note;o.advancePaid=advance;if(updateData.remainingPaid)o.remainingPaid=true;}
     const ind=document.getElementById('saved_'+id);
     ind.style.display='inline'; setTimeout(()=>{ind.style.display='none';},2000);
     const badge=document.querySelector(`#card_${id} .order-status`);
@@ -684,6 +727,8 @@ async function saveOrder(id){
     const wa=document.getElementById('waLink_'+id);
     if(wa){const o2=allOrders.find(x=>(x.orderId||x.id)===id);if(o2)wa.href=buildWaLink(o2);}
     updateStats();
+    // Re-render so delivered orders move to collapsed section
+    renderOrders();
   }catch(err){console.error(err);alert('Save failed: '+err.message);}
 }
 
@@ -774,18 +819,24 @@ function buildReports(){
   const weekAgo=new Date(now-7*86400000);
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
 
-  // Revenue
+  // Revenue — advance collected + full amount from delivered orders
   const totalAdv=allOrders.reduce((s,o)=>s+(o.advancePaid||0),0);
-  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+(o.advancePaid||0),0);
-  const weekAdv=allOrders.filter(o=>o.createdAt&&o.createdAt.toDate&&o.createdAt.toDate()>=weekAgo).reduce((s,o)=>s+(o.advancePaid||0),0);
-  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+(o.advancePaid||0),0);
-  const unpaid=allOrders.filter(o=>!o.remainingPaid&&o.status!=='Delivered').length;
+  const totalDeliveredFull=allOrders.filter(o=>o.status==='Delivered'&&o.remainingPaid).reduce((s,o)=>s+(o.cakeAmount||0),0);
+  const totalRevenue=totalAdv; // advance is main tracked metric
 
-  document.getElementById('totalRevenue').textContent='₹'+totalAdv.toLocaleString('en-IN');
+  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const weekAdv=allOrders.filter(o=>{
+    if(!o.createdAt||!o.createdAt.toDate) return false;
+    return o.createdAt.toDate()>=weekAgo;
+  }).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const unpaidCount=allOrders.filter(o=>!o.remainingPaid&&o.status!=='Delivered').length;
+
+  document.getElementById('totalRevenue').textContent='₹'+totalRevenue.toLocaleString('en-IN');
   document.getElementById('revToday').textContent='₹'+todayAdv.toLocaleString('en-IN');
   document.getElementById('revWeek').textContent='₹'+weekAdv.toLocaleString('en-IN');
   document.getElementById('revMonth').textContent='₹'+monthAdv.toLocaleString('en-IN');
-  document.getElementById('revPending').textContent=unpaid+' orders';
+  document.getElementById('revPending').textContent=unpaidCount+' orders';
 
   // Status chart
   const statuses=['Pending','Baking','Ready','Delivered'];
@@ -871,6 +922,7 @@ async function uploadGalleryImages(input){
   loadAdminGallery();
 }
 
+let galleryLoaded=false;
 async function loadAdminGallery(){
   const grid=document.getElementById('galleryAdminGrid');
   grid.innerHTML='<div class="gallery-loading">Loading…</div>';
