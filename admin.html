@@ -411,8 +411,6 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
 // ═══════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════
-// ⚠️ SECURITY: Sirf yahi numbers login kar sakte hain — apna number daalo
-const ADMIN_NUMBERS = ['9876543210']; // <-- APNA 10-DIGIT NUMBER YAHAN LIKHO
 
 // ═══════════════════════════════════════════════
 // AUTH
@@ -434,7 +432,6 @@ window.addEventListener('load',()=>{
 async function sendOTP(){
   const phone=document.getElementById('phoneInput').value.trim().replace(/\D/g,'');
   if(phone.length!==10){alert('Please enter a valid 10-digit number.');return;}
-  if(!ADMIN_NUMBERS.includes(phone)){alert('❌ Access denied. Sirf authorized admin hi login kar sakta hai.');return;}
   const btn=document.getElementById('sendOtpBtn');
   btn.disabled=true; btn.textContent='Sending…';
   try{
