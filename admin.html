@@ -6,7 +6,7 @@
 <title>Admin – Cakes & Bakes</title>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet"/>
 
-<!-- Firebase SDK (compat only — no module imports) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -54,12 +54,37 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 }
 .login-logo{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold-light);margin-bottom:0.3rem}
 .login-sub{color:var(--muted);font-size:0.82rem;margin-bottom:2rem;letter-spacing:0.05em}
+
+/* Step indicator */
+.step-dots{display:flex;justify-content:center;gap:0.5rem;margin-bottom:1.5rem}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background 0.3s}
+.step-dot.active{background:var(--gold)}
+
+/* Phone input with flag */
+.phone-row{display:flex;gap:0.5rem;margin-bottom:0.9rem}
+.country-code{
+  background:#0f0a05;border:1px solid var(--border);border-radius:10px;
+  color:var(--gold-light);padding:0.85rem 0.8rem;font-family:'Jost',sans-serif;
+  font-size:0.9rem;min-width:70px;text-align:center;outline:none;
+  cursor:default;
+}
 .login-box input{
   width:100%;background:#0f0a05;border:1px solid var(--border);border-radius:10px;
   padding:0.85rem 1rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.9rem;
   margin-bottom:0.9rem;outline:none;transition:border 0.2s;
 }
 .login-box input:focus{border-color:var(--gold)}
+.login-box .phone-input{margin-bottom:0;flex:1}
+
+/* OTP boxes */
+.otp-row{display:flex;gap:0.5rem;justify-content:center;margin-bottom:1.2rem}
+.otp-box{
+  width:46px;height:54px;background:#0f0a05;border:2px solid var(--border);
+  border-radius:10px;color:var(--gold-light);font-size:1.4rem;font-weight:700;
+  text-align:center;font-family:'Jost',sans-serif;outline:none;transition:border 0.2s;
+}
+.otp-box:focus{border-color:var(--gold)}
+
 .btn-login{
   width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-light));
   color:#1a0a02;border:none;border-radius:10px;padding:0.9rem;
@@ -67,7 +92,21 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   cursor:pointer;letter-spacing:0.06em;margin-top:0.3rem;transition:opacity 0.2s;
 }
 .btn-login:hover{opacity:0.88}
-.login-err{color:#e74c3c;font-size:0.82rem;margin-top:0.8rem;display:none}
+.btn-login:disabled{opacity:0.5;cursor:default}
+.btn-ghost{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  width:100%;border-radius:10px;padding:0.7rem;
+  font-family:'Jost',sans-serif;font-size:0.82rem;
+  cursor:pointer;margin-top:0.6rem;transition:all 0.2s;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.login-err{color:#e74c3c;font-size:0.82rem;margin-top:0.8rem;display:none;line-height:1.5}
+.login-info{color:var(--muted);font-size:0.8rem;margin-top:0.8rem;line-height:1.5}
+.resend-timer{color:var(--muted);font-size:0.78rem;margin-top:0.5rem}
+.resend-timer span{color:var(--gold-light);cursor:pointer;text-decoration:underline}
+
+/* reCAPTCHA invisible container */
+#recaptcha-container{margin-bottom:0.5rem}
 
 /* ── MAIN APP ── */
 #app{display:none}
@@ -116,15 +155,41 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 }
 .tab.active{color:var(--gold-light);border-bottom-color:var(--gold)}
 
-/* Search bar */
+/* Search + Date bar */
 .search-bar{
-  padding:0.8rem 1rem;background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0.8rem 1rem;background:var(--surface);
+  border-bottom:1px solid var(--border);display:none;
 }
-.search-bar input{
-  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+.search-bar.visible{display:block}
+.search-row{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap}
+.search-bar input[type="text"]{
+  flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
   padding:0.7rem 1rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;
 }
-.search-bar input:focus{border-color:var(--gold)}
+.search-bar input[type="text"]:focus{border-color:var(--gold)}
+
+/* Date picker */
+.date-picker-wrap{position:relative}
+.date-btn{
+  display:flex;align-items:center;gap:0.4rem;
+  background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  padding:0.7rem 0.9rem;color:var(--text);font-family:'Jost',sans-serif;font-size:0.82rem;
+  cursor:pointer;white-space:nowrap;transition:border 0.2s;
+}
+.date-btn:hover,.date-btn.active{border-color:var(--gold);color:var(--gold-light)}
+.date-btn .cal-icon{font-size:1rem}
+
+/* Native date input hidden behind button */
+.date-native{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;
+  font-size:16px;/* prevent zoom on iOS */
+}
+.clear-date{
+  background:transparent;border:1px solid rgba(192,57,43,0.4);
+  border-radius:8px;color:#e74c3c;padding:0.6rem 0.7rem;
+  font-size:0.75rem;cursor:pointer;white-space:nowrap;transition:all 0.2s;
+}
+.clear-date:hover{background:rgba(192,57,43,0.1)}
 
 /* Orders list */
 #ordersContainer{padding:0.8rem 0.8rem 5rem;display:flex;flex-direction:column;gap:0.8rem}
@@ -135,7 +200,6 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   overflow:hidden;box-shadow:var(--card-shadow);transition:transform 0.15s;
 }
 .order-card:active{transform:scale(0.99)}
-
 .card-header{
   display:flex;align-items:center;justify-content:space-between;
   padding:0.9rem 1rem 0.6rem;gap:0.5rem;flex-wrap:wrap;
@@ -145,14 +209,12 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   font-size:0.7rem;background:var(--gold-dim);border:1px solid var(--border);
   color:var(--gold-light);padding:0.2rem 0.6rem;border-radius:20px;white-space:nowrap;
 }
-
 .card-body{padding:0 1rem 0.6rem;display:grid;grid-template-columns:1fr auto;gap:0.5rem;align-items:start}
 .customer-name{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:0.15rem}
 .customer-phone{font-size:0.8rem;color:var(--gold-light);text-decoration:none}
 .customer-phone:hover{text-decoration:underline}
 .cake-details{font-size:0.78rem;color:var(--muted);margin-top:0.3rem;line-height:1.7}
 .cake-details strong{color:var(--text)}
-
 .cake-img{
   width:72px;height:72px;border-radius:10px;object-fit:cover;
   border:2px solid var(--border);cursor:pointer;flex-shrink:0;
@@ -162,13 +224,10 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;
   font-size:1.6rem;flex-shrink:0;
 }
-
 .card-notes{
   padding:0 1rem 0.6rem;font-size:0.76rem;color:var(--muted);
   border-top:1px solid var(--border);padding-top:0.6rem;line-height:1.6;
 }
-
-/* Status & Payment row */
 .card-controls{
   padding:0.7rem 1rem 0.9rem;border-top:1px solid var(--border);
   display:flex;flex-wrap:wrap;gap:0.6rem;align-items:center;
@@ -179,7 +238,6 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   cursor:pointer;outline:none;flex:1;min-width:130px;
 }
 .status-select:focus{border-color:var(--gold)}
-
 .payment-block{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;flex:1}
 .pay-input{
   width:90px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -188,10 +246,8 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 }
 .pay-input:focus{border-color:var(--teal-light)}
 .pay-label{font-size:0.72rem;color:var(--muted)}
-
 .remaining-toggle{display:flex;align-items:center;gap:0.3rem;cursor:pointer;font-size:0.75rem;color:var(--muted)}
 .remaining-toggle input[type=checkbox]{accent-color:var(--teal-light);width:14px;height:14px;cursor:pointer}
-
 .btn-save{
   background:linear-gradient(135deg,var(--teal),var(--teal-light));
   color:#fff;border:none;border-radius:8px;padding:0.45rem 0.85rem;
@@ -206,7 +262,6 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 .status-Baking{border-left:4px solid var(--blue)}
 .status-Ready{border-left:4px solid var(--green)}
 .status-Delivered{border-left:4px solid var(--muted)}
-
 .status-badge{
   display:inline-block;font-size:0.68rem;font-weight:700;padding:0.18rem 0.55rem;
   border-radius:20px;letter-spacing:0.08em;text-transform:uppercase;
@@ -216,12 +271,11 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 .badge-Ready{background:rgba(39,174,96,0.18);color:#2ecc71}
 .badge-Delivered{background:rgba(255,255,255,0.08);color:var(--muted)}
 
-/* Date header */
+/* Date header in list */
 .date-header{
   padding:0.4rem 0.5rem;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;
   color:var(--gold);font-weight:600;
 }
-
 /* Empty state */
 .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
 .empty-state .empty-icon{font-size:3rem;margin-bottom:0.8rem}
@@ -237,8 +291,7 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,0.1);
   border:none;color:#fff;font-size:1.4rem;width:44px;height:44px;border-radius:50%;cursor:pointer;
 }
-
-/* Floating refresh btn */
+/* FAB */
 .fab{
   position:fixed;bottom:1.5rem;right:1.2rem;
   background:linear-gradient(135deg,var(--gold),var(--gold-light));
@@ -246,7 +299,6 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   font-size:1.3rem;cursor:pointer;box-shadow:0 4px 20px rgba(201,151,58,0.4);
   display:flex;align-items:center;justify-content:center;z-index:50;
 }
-
 /* Loading */
 .spinner{
   display:inline-block;width:18px;height:18px;border:2px solid var(--border);
@@ -257,8 +309,7 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   display:flex;align-items:center;justify-content:center;
   padding:3rem;flex-direction:column;gap:0.8rem;color:var(--muted);
 }
-
-/* Saved toast */
+/* Toast */
 #toast{
   position:fixed;bottom:5rem;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--teal);color:#fff;padding:0.6rem 1.4rem;border-radius:30px;
@@ -267,7 +318,6 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Responsive tweaks for laptop */
 @media(min-width:700px){
   .stats-bar{grid-template-columns:repeat(4,1fr)}
   #ordersContainer{padding:1rem 1.2rem 4rem;max-width:700px;margin:0 auto}
@@ -286,10 +336,46 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
   <div class="login-box">
     <div class="login-logo">🎂 Cakes & Bakes</div>
     <div class="login-sub">Admin Dashboard · Ferozepur</div>
-    <input type="email" id="loginEmail" placeholder="Admin Email" autocomplete="email"/>
-    <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password"/>
-    <button class="btn-login" onclick="doLogin()">Sign In</button>
-    <div class="login-err" id="loginErr"></div>
+
+    <!-- Step dots -->
+    <div class="step-dots">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+    </div>
+
+    <!-- STEP 1: Phone number -->
+    <div id="stepPhone">
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1rem;">Enter your admin phone number to receive OTP</p>
+      <div class="phone-row">
+        <div class="country-code">🇮🇳 +91</div>
+        <input class="phone-input" type="tel" id="phoneInput" placeholder="98765 43210" maxlength="10" autocomplete="tel"/>
+      </div>
+      <!-- reCAPTCHA invisible -->
+      <div id="recaptcha-container"></div>
+      <button class="btn-login" id="btnSendOTP" onclick="sendOTP()">Send OTP 📲</button>
+      <div class="login-err" id="loginErr"></div>
+    </div>
+
+    <!-- STEP 2: OTP entry -->
+    <div id="stepOTP" style="display:none">
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem;">OTP sent to <strong id="sentToNum" style="color:var(--gold-light)"></strong></p>
+      <div class="otp-row">
+        <input class="otp-box" type="tel" maxlength="1" id="otp0" oninput="otpInput(0)" onkeydown="otpBack(event,0)"/>
+        <input class="otp-box" type="tel" maxlength="1" id="otp1" oninput="otpInput(1)" onkeydown="otpBack(event,1)"/>
+        <input class="otp-box" type="tel" maxlength="1" id="otp2" oninput="otpInput(2)" onkeydown="otpBack(event,2)"/>
+        <input class="otp-box" type="tel" maxlength="1" id="otp3" oninput="otpInput(3)" onkeydown="otpBack(event,3)"/>
+        <input class="otp-box" type="tel" maxlength="1" id="otp4" oninput="otpInput(4)" onkeydown="otpBack(event,4)"/>
+        <input class="otp-box" type="tel" maxlength="1" id="otp5" oninput="otpInput(5)" onkeydown="otpBack(event,5)"/>
+      </div>
+      <button class="btn-login" id="btnVerifyOTP" onclick="verifyOTP()">Verify OTP ✅</button>
+      <div class="resend-timer" id="resendTimer">Resend OTP in <strong id="timerCount">30</strong>s</div>
+      <div class="resend-timer" id="resendLink" style="display:none">
+        Didn't receive? <span onclick="resendOTP()">Resend OTP</span>
+      </div>
+      <button class="btn-ghost" onclick="backToPhone()">← Change number</button>
+      <div class="login-err" id="otpErr"></div>
+    </div>
+
   </div>
 </div>
 
@@ -314,15 +400,25 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 
   <!-- Tabs -->
   <div class="tabs">
-    <div class="tab active" data-tab="today" onclick="switchTab('today')">📅 Today</div>
-    <div class="tab" data-tab="all" onclick="switchTab('all')">📋 All Orders</div>
-    <div class="tab" data-tab="search" onclick="switchTab('search')">🔍 Search</div>
-    <div class="tab" data-tab="pending" onclick="switchTab('pending')">⏳ Pending</div>
+    <div class="tab active" data-tab="today"   onclick="switchTab('today')">📅 Today</div>
+    <div class="tab"        data-tab="all"     onclick="switchTab('all')">📋 All</div>
+    <div class="tab"        data-tab="search"  onclick="switchTab('search')">🔍 Search</div>
+    <div class="tab"        data-tab="pending" onclick="switchTab('pending')">⏳ Pending</div>
   </div>
 
-  <!-- Search bar (hidden unless search tab active) -->
-  <div class="search-bar" id="searchBar" style="display:none">
-    <input type="text" id="searchInput" placeholder="Search name, phone, order ID…" oninput="doSearch()"/>
+  <!-- Search + Date bar (shown only in search tab) -->
+  <div class="search-bar" id="searchBar">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Search name, phone, order ID…" oninput="doSearch()"/>
+      <div class="date-picker-wrap">
+        <div class="date-btn" id="dateBtnLabel">
+          <span class="cal-icon">📅</span>
+          <span id="dateBtnText">Pick Date</span>
+          <input type="date" class="date-native" id="datePickerInput" onchange="onDateChange()"/>
+        </div>
+      </div>
+      <button class="clear-date" id="clearDateBtn" onclick="clearDate()" style="display:none">✕ Clear</button>
+    </div>
   </div>
 
   <!-- Orders list -->
@@ -344,11 +440,14 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;min-he
 <div id="toast">✅ Saved!</div>
 
 <script>
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // Helpers
-// ─────────────────────────────────────────────
-let allOrders = [];
-let currentTab = 'today';
+// ─────────────────────────────────────────
+let allOrders   = [];
+let currentTab  = 'today';
+let selectedDate = null;  // "YYYY-MM-DD"
+let confirmationResult = null;
+let resendTimer = null;
 
 function todayStr(){
   const d = new Date();
@@ -374,49 +473,179 @@ function showToast(msg='✅ Saved!'){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function showErr(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideErr(id){
+  document.getElementById(id).style.display = 'none';
 }
 
-// ─────────────────────────────────────────────
-// Auth
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
+// OTP AUTH
+// ─────────────────────────────────────────
+let recaptchaVerifier = null;
+
+function setupRecaptcha(){
+  if(recaptchaVerifier) return;
+  recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+    size: 'invisible',
+    callback: () => {}
+  });
+  recaptchaVerifier.render();
+}
+
+async function sendOTP(){
+  const phone = document.getElementById('phoneInput').value.trim().replace(/\s/g,'');
+  hideErr('loginErr');
+
+  if(phone.length !== 10 || !/^\d{10}$/.test(phone)){
+    showErr('loginErr', '⚠️ Please enter a valid 10-digit phone number.');
+    return;
+  }
+
+  const btn = document.getElementById('btnSendOTP');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    setupRecaptcha();
+    const fullPhone = '+91' + phone;
+    confirmationResult = await auth.signInWithPhoneNumber(fullPhone, recaptchaVerifier);
+
+    // Switch to OTP step
+    document.getElementById('stepPhone').style.display = 'none';
+    document.getElementById('stepOTP').style.display   = 'block';
+    document.getElementById('dot1').classList.remove('active');
+    document.getElementById('dot2').classList.add('active');
+    document.getElementById('sentToNum').textContent = '+91 ' + phone;
+    document.getElementById('otp0').focus();
+    startResendTimer();
+
+  } catch(e){
+    let msg = '⚠️ Failed to send OTP. Try again.';
+    if(e.code === 'auth/invalid-phone-number') msg = '⚠️ Invalid phone number.';
+    if(e.code === 'auth/too-many-requests')    msg = '⚠️ Too many attempts. Please wait and try again.';
+    showErr('loginErr', msg);
+    btn.disabled = false;
+    btn.textContent = 'Send OTP 📲';
+    // Reset recaptcha
+    if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
+  }
+}
+
+async function verifyOTP(){
+  const otp = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
+  hideErr('otpErr');
+
+  if(otp.length !== 6){
+    showErr('otpErr', '⚠️ Please enter all 6 digits.');
+    return;
+  }
+
+  const btn = document.getElementById('btnVerifyOTP');
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+
+  try {
+    await confirmationResult.confirm(otp);
+    // Auth state observer will handle showing the app
+  } catch(e){
+    let msg = '⚠️ Wrong OTP. Please try again.';
+    if(e.code === 'auth/code-expired') msg = '⚠️ OTP expired. Please request a new one.';
+    showErr('otpErr', msg);
+    btn.disabled = false;
+    btn.textContent = 'Verify OTP ✅';
+  }
+}
+
+async function resendOTP(){
+  // Reset recaptcha for fresh send
+  if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
+  document.getElementById('stepOTP').style.display = 'none';
+  document.getElementById('stepPhone').style.display = 'block';
+  document.getElementById('dot2').classList.remove('active');
+  document.getElementById('dot1').classList.add('active');
+  document.getElementById('btnSendOTP').disabled = false;
+  document.getElementById('btnSendOTP').textContent = 'Send OTP 📲';
+  clearInterval(resendTimer);
+}
+
+function backToPhone(){
+  document.getElementById('stepOTP').style.display = 'none';
+  document.getElementById('stepPhone').style.display = 'block';
+  document.getElementById('dot2').classList.remove('active');
+  document.getElementById('dot1').classList.add('active');
+  document.getElementById('btnSendOTP').disabled = false;
+  document.getElementById('btnSendOTP').textContent = 'Send OTP 📲';
+  hideErr('loginErr');
+  clearInterval(resendTimer);
+  if(recaptchaVerifier){ recaptchaVerifier.clear(); recaptchaVerifier = null; }
+}
+
+function startResendTimer(){
+  let secs = 30;
+  document.getElementById('resendTimer').style.display = 'block';
+  document.getElementById('resendLink').style.display  = 'none';
+  document.getElementById('timerCount').textContent = secs;
+  clearInterval(resendTimer);
+  resendTimer = setInterval(()=>{
+    secs--;
+    document.getElementById('timerCount').textContent = secs;
+    if(secs <= 0){
+      clearInterval(resendTimer);
+      document.getElementById('resendTimer').style.display = 'none';
+      document.getElementById('resendLink').style.display  = 'block';
+    }
+  }, 1000);
+}
+
+// OTP box navigation
+function otpInput(idx){
+  const val = document.getElementById('otp'+idx).value;
+  if(val && idx < 5) document.getElementById('otp'+(idx+1)).focus();
+  // Auto verify when all 6 entered
+  const otp = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
+  if(otp.length === 6) verifyOTP();
+}
+function otpBack(e, idx){
+  if(e.key === 'Backspace' && !document.getElementById('otp'+idx).value && idx > 0){
+    document.getElementById('otp'+(idx-1)).focus();
+  }
+}
+
+// ─────────────────────────────────────────
+// Auth state observer
+// ─────────────────────────────────────────
 auth.onAuthStateChanged(user => {
   if(user){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('app').style.display='block';
-    const d=new Date();
-    document.getElementById('topDate').textContent=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const d = new Date();
+    document.getElementById('topDate').textContent =
+      d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
     loadOrders();
   } else {
-    document.getElementById('loginScreen').style.display='flex';
-    document.getElementById('app').style.display='none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
   }
 });
 
-async function doLogin(){
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginErr');
-  errEl.style.display='none';
-  try {
-    await auth.signInWithEmailAndPassword(email, pass);
-  } catch(e) {
-    errEl.textContent = 'Invalid email or password. Try again.';
-    errEl.style.display='block';
-  }
-}
 function doLogout(){
   if(confirm('Log out of admin?')) auth.signOut();
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // Load orders from Firestore
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 async function loadOrders(){
   document.getElementById('ordersContainer').innerHTML =
     `<div class="loading-overlay"><div class="spinner"></div><span>Loading…</span></div>`;
   try {
-    const snap = await db.collection('orders').orderBy('createdAt','desc').limit(300).get();
+    const snap = await db.collection('orders').orderBy('createdAt','desc').limit(500).get();
     allOrders = snap.docs.map(d => ({id:d.id,...d.data()}));
     updateStats();
     renderTab();
@@ -426,9 +655,9 @@ async function loadOrders(){
   }
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // Stats
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 function updateStats(){
   const today = todayStr();
   document.getElementById('sTotal').textContent   = allOrders.length;
@@ -437,24 +666,32 @@ function updateStats(){
   document.getElementById('sReady').textContent   = allOrders.filter(o=>o.status==='Ready').length;
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // Tabs
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 function switchTab(tab){
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
-  document.getElementById('searchBar').style.display = tab==='search' ? 'block' : 'none';
-  if(tab==='search') { document.getElementById('searchInput').focus(); return; }
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  const sb = document.getElementById('searchBar');
+  if(tab === 'search'){
+    sb.classList.add('visible');
+    document.getElementById('searchInput').focus();
+    doSearch(); // show current search state
+    return;
+  } else {
+    sb.classList.remove('visible');
+  }
   renderTab();
 }
 
 function renderTab(){
   const today = todayStr();
   let orders = [...allOrders];
-  if(currentTab==='today'){
-    orders = orders.filter(o=>o.pickupDate===today).sort((a,b)=>timeToMins(a.pickupTime)-timeToMins(b.pickupTime));
+  if(currentTab === 'today'){
+    orders = orders.filter(o=>o.pickupDate===today)
+      .sort((a,b)=>timeToMins(a.pickupTime)-timeToMins(b.pickupTime));
     renderOrders(orders, true);
-  } else if(currentTab==='pending'){
+  } else if(currentTab === 'pending'){
     orders = orders.filter(o=>o.status==='Pending'||o.status==='Baking');
     renderOrders(orders);
   } else {
@@ -462,38 +699,78 @@ function renderTab(){
   }
 }
 
+// ─────────────────────────────────────────
+// Search + Date filter
+// ─────────────────────────────────────────
 function doSearch(){
-  const q = document.getElementById('searchInput').value.toLowerCase().trim();
-  if(!q){ document.getElementById('ordersContainer').innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><p>Type to search orders…</p></div>'; return; }
-  const results = allOrders.filter(o=>
-    (o.name||'').toLowerCase().includes(q) ||
-    (o.phone||'').includes(q) ||
-    (o.orderId||'').toLowerCase().includes(q) ||
-    (o.flavour||'').toLowerCase().includes(q)
-  );
+  const q    = document.getElementById('searchInput').value.toLowerCase().trim();
+  const date = selectedDate;
+
+  let results = [...allOrders];
+
+  // Filter by date if selected
+  if(date){
+    results = results.filter(o => o.pickupDate === date);
+  }
+
+  // Filter by text query
+  if(q){
+    results = results.filter(o =>
+      (o.name||'').toLowerCase().includes(q) ||
+      (o.phone||'').includes(q) ||
+      (o.orderId||'').toLowerCase().includes(q) ||
+      (o.flavour||'').toLowerCase().includes(q)
+    );
+  }
+
+  // If neither filter active show placeholder
+  if(!q && !date){
+    document.getElementById('ordersContainer').innerHTML =
+      `<div class="empty-state"><div class="empty-icon">🔍</div><p>Type a name / phone / order ID<br>or pick a date to filter orders</p></div>`;
+    return;
+  }
+
   renderOrders(results);
 }
 
-// ─────────────────────────────────────────────
+function onDateChange(){
+  const val = document.getElementById('datePickerInput').value; // "YYYY-MM-DD"
+  if(!val){ clearDate(); return; }
+  selectedDate = val;
+  document.getElementById('dateBtnText').textContent = formatDate(val);
+  document.getElementById('dateBtnLabel').classList.add('active');
+  document.getElementById('clearDateBtn').style.display = 'block';
+  doSearch();
+}
+
+function clearDate(){
+  selectedDate = null;
+  document.getElementById('datePickerInput').value = '';
+  document.getElementById('dateBtnText').textContent = 'Pick Date';
+  document.getElementById('dateBtnLabel').classList.remove('active');
+  document.getElementById('clearDateBtn').style.display = 'none';
+  doSearch();
+}
+
+// ─────────────────────────────────────────
 // Render order cards
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 function renderOrders(orders, showTimeHeader=false){
   const container = document.getElementById('ordersContainer');
   if(!orders.length){
-    container.innerHTML=`<div class="empty-state"><div class="empty-icon">🎂</div><p>No orders found here.</p></div>`;
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎂</div><p>No orders found.</p></div>`;
     return;
   }
-  container.innerHTML = orders.map(o=>cardHTML(o, showTimeHeader)).join('');
+  container.innerHTML = orders.map(o => cardHTML(o, showTimeHeader)).join('');
 }
 
-function cardHTML(o, showTime){
-  const status   = o.status||'Pending';
-  const advance  = o.advancePaid||0;
-  const remPaid  = o.remainingPaid||false;
-  const imgHTML  = o.imageURL
+function cardHTML(o){
+  const status  = o.status||'Pending';
+  const advance = o.advancePaid||0;
+  const remPaid = o.remainingPaid||false;
+  const imgHTML = o.imageURL
     ? `<img class="cake-img" src="${o.imageURL}" alt="ref" onclick="openLightbox('${o.imageURL}')" title="Tap to enlarge"/>`
     : `<div class="no-img">🎨</div>`;
-
   const notes = [o.cakeMessage&&`✍️ "${o.cakeMessage}"`, o.designDetails&&`📝 ${o.designDetails}`].filter(Boolean).join(' &nbsp;·&nbsp; ');
 
   return `
@@ -508,7 +785,6 @@ function cardHTML(o, showTime){
       <div style="font-size:0.68rem;color:var(--muted);margin-top:0.25rem">📅 ${formatDate(o.pickupDate)}</div>
     </div>
   </div>
-
   <div class="card-body">
     <div>
       <div class="customer-name">${o.name||'—'}</div>
@@ -520,14 +796,11 @@ function cardHTML(o, showTime){
     </div>
     ${imgHTML}
   </div>
-
   ${notes?`<div class="card-notes">${notes}</div>`:''}
-
   <div class="card-controls">
     <select class="status-select" id="st-${o.orderId}">
       ${['Pending','Baking','Ready','Delivered'].map(s=>`<option${s===status?' selected':''}>${s}</option>`).join('')}
     </select>
-
     <div class="payment-block">
       <div>
         <div class="pay-label">Advance ₹</div>
@@ -537,16 +810,15 @@ function cardHTML(o, showTime){
         <input type="checkbox" id="rem-${o.orderId}" ${remPaid?'checked':''}/> Remaining Paid
       </label>
     </div>
-
     <button class="btn-save" onclick="saveOrder('${o.orderId}')">💾 Save</button>
     <button class="btn-sm" onclick="whatsapp('${o.phone||''}','${o.orderId||o.id}','${o.name||''}','${status}')" style="border-color:var(--teal);color:var(--teal-light)">💬 WA</button>
   </div>
 </div>`;
 }
 
-// ─────────────────────────────────────────────
-// Save order update
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
+// Save order
+// ─────────────────────────────────────────
 async function saveOrder(orderId){
   const btn = document.querySelector(`#card-${orderId} .btn-save`);
   btn.disabled=true; btn.textContent='⏳…';
@@ -554,16 +826,17 @@ async function saveOrder(orderId){
   const advance = parseFloat(document.getElementById(`adv-${orderId}`).value)||0;
   const remPaid = document.getElementById(`rem-${orderId}`).checked;
   try {
-    await db.collection('orders').doc(orderId).update({status, advancePaid:advance, remainingPaid:remPaid, updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-    // Update local cache
+    await db.collection('orders').doc(orderId).update({
+      status, advancePaid:advance, remainingPaid:remPaid,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
     const idx = allOrders.findIndex(o=>o.orderId===orderId||o.id===orderId);
     if(idx>=0) Object.assign(allOrders[idx],{status,advancePaid:advance,remainingPaid:remPaid});
     updateStats();
-    // Refresh card border colour
     const card = document.getElementById(`card-${orderId}`);
     card.className = card.className.replace(/status-\w+/,`status-${status}`);
-    card.querySelector('.status-badge').className=`status-badge badge-${status}`;
-    card.querySelector('.status-badge').textContent=status;
+    card.querySelector('.status-badge').className = `status-badge badge-${status}`;
+    card.querySelector('.status-badge').textContent = status;
     showToast('✅ Order updated!');
   } catch(e){
     showToast('⚠️ Save failed');
@@ -572,9 +845,9 @@ async function saveOrder(orderId){
   }
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // WhatsApp shortcut
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 function whatsapp(phone, orderId, name, status){
   if(!phone){alert('No phone number for this order.');return;}
   const clean = phone.replace(/\D/g,'');
@@ -583,19 +856,16 @@ function whatsapp(phone, orderId, name, status){
   window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 // Lightbox
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────
 function openLightbox(url){
-  document.getElementById('lbImg').src=url;
+  document.getElementById('lbImg').src = url;
   document.getElementById('lightbox').classList.add('open');
 }
 function closeLightbox(){
   document.getElementById('lightbox').classList.remove('open');
 }
-
-// Enter key on login
-document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 </script>
 </body>
 </html>
