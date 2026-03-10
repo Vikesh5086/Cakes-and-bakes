@@ -530,16 +530,21 @@ footer a{color:var(--gold-light);text-decoration:none}
       <div class="form-group">
         <label>Reference Image (Optional)</label>
         <div class="upload-zone">
-          <input type="file" id="cakeImage" accept="image/*" onchange="previewImages(this)"/>
+          <input type="file" id="cakeImage" accept="image/*" onchange="previewImages(this); detectAddons(this)"/>
           <div class="upload-text">📸 <strong>Tap to upload</strong> or drag here<br/>JPG, PNG up to 5MB</div>
           <div class="preview-grid" id="previewGrid"></div>
         </div>
+        <!-- AI Add-on Detection Result Box -->
+        <div id="addonDetectBox" style="display:none;margin-top:0.8rem;background:rgba(201,151,58,0.12);border:1px solid rgba(201,151,58,0.4);border-radius:8px;padding:1rem 1.1rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem">
+            <span style="font-size:1.1rem">✨</span>
+            <span style="font-weight:600;color:var(--gold-light);font-size:0.88rem;letter-spacing:0.05em">AI Add-on Detection</span>
+            <span id="addonDetectSpinner" style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-left:auto">🔍 Analysing photo…</span>
+          </div>
+          <div id="addonDetectResult" style="font-size:0.83rem;color:rgba(255,255,255,0.75);line-height:1.7"></div>
+        </div>
       </div>
       <button class="submit-btn" onclick="submitOrder()">🎂 Confirm My Order</button>
-      <div style="margin-top:1rem;background:rgba(201,151,58,0.08);border:1px solid rgba(201,151,58,0.25);border-radius:8px;padding:0.9rem 1rem;font-size:0.8rem;color:rgba(255,255,255,0.65);line-height:1.6">
-        <strong style="color:#e8c47a;display:block;margin-bottom:0.3rem">📌 Price Note</strong>
-        The price shown in our menu is for a standard cake of the selected flavour &amp; weight. If you have requested <strong style="color:#e8c47a">custom design, fondant work, extra tiers, special toppers, or other add-ons</strong>, the baker will <strong style="color:#e8c47a">confirm the final price with you via WhatsApp</strong> before starting the order. No extra charges will be applied without your approval. ✅
-      </div>
     </div>
     <div class="success-msg" id="successMsg"></div>
   </div>
@@ -811,6 +816,99 @@ function previewImages(input){
 }
 
 // ─────────────────────────────────────
+// AI Add-on Detection via Cloudflare Worker
+// ─────────────────────────────────────
+
+// ⚠️ Yahan apna Cloudflare Worker URL daalo deploy karne ke baad:
+const ADDON_WORKER_URL = 'https://fragrant-mud-02abcakes-addon-detector.vikesh6381.workers.dev';
+
+async function detectAddons(input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+
+  const box=document.getElementById('addonDetectBox');
+  const spinner=document.getElementById('addonDetectSpinner');
+  const result=document.getElementById('addonDetectResult');
+  box.style.display='block';
+  spinner.textContent='🔍 Analysing photo…';
+  result.innerHTML='';
+
+  // Check if worker URL is configured
+  if(ADDON_WORKER_URL.includes('YOUR_WORKER')){
+    spinner.textContent='';
+    result.innerHTML='<span style="color:rgba(255,255,255,0.45);font-size:0.8rem">⚙️ Worker URL configure nahi hua abhi. Baker add-ons WhatsApp pe confirm karega.</span>';
+    return;
+  }
+
+  try{
+    // 1. Fetch add-on list from Firestore
+    const snap=await db.collection('addonPrices').get();
+    if(snap.empty){
+      spinner.textContent='';
+      result.innerHTML='<span style="color:rgba(255,255,255,0.4);font-size:0.8rem">ℹ️ Shop ne abhi koi add-on define nahi kiya.</span>';
+      return;
+    }
+    const addonList=snap.docs.map(d=>({name:d.data().name, price:d.data().price}));
+
+    // 2. Convert image to base64
+    const base64=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result.split(',')[1]);
+      r.onerror=()=>rej(new Error('Read failed'));
+      r.readAsDataURL(file);
+    });
+    const mediaType=file.type||'image/jpeg';
+
+    // 3. Call Cloudflare Worker (which calls Claude safely)
+    const resp=await fetch(ADDON_WORKER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ imageBase64:base64, mediaType, addonList })
+    });
+
+    if(!resp.ok){
+      throw new Error('Worker responded with '+resp.status);
+    }
+
+    const parsed=await resp.json();
+
+    spinner.textContent='';
+
+    if(!parsed.detected||parsed.detected.length===0){
+      result.innerHTML=`<div style="color:#2ecc40;font-size:0.85rem">✅ Koi extra add-on detect nahi hua — standard pricing apply hogi.</div>`;
+      return;
+    }
+
+    // Build breakdown UI
+    let html=`<div style="color:var(--gold-light);font-weight:600;margin-bottom:0.5rem;font-size:0.82rem">⚠️ Ye add-ons detect hue — extra charges lagenge:</div>`;
+    html+=`<table style="width:100%;border-collapse:collapse;font-size:0.82rem">`;
+    html+=`<tr style="color:rgba(255,255,255,0.4);font-size:0.75rem"><td style="padding:3px 0">Item</td><td style="text-align:center">Qty</td><td style="text-align:right">Price</td></tr>`;
+    for(const item of parsed.detected){
+      const subtotal=item.count*item.price;
+      html+=`<tr style="border-top:1px solid rgba(255,255,255,0.07)">
+        <td style="padding:4px 0">✨ ${item.name}</td>
+        <td style="text-align:center">${item.count} × ₹${item.price}</td>
+        <td style="text-align:right;color:var(--gold-light);font-weight:600">₹${subtotal}</td>
+      </tr>`;
+    }
+    html+=`<tr style="border-top:2px solid rgba(201,151,58,0.4)">
+      <td colspan="2" style="padding:6px 0;font-weight:600;color:#fff">Total Extra</td>
+      <td style="text-align:right;font-weight:700;color:var(--gold-light);font-size:1rem">₹${parsed.total}</td>
+    </tr></table>`;
+    html+=`<div style="margin-top:0.7rem;font-size:0.75rem;color:rgba(255,255,255,0.4);font-style:italic">* Final price baker confirm karega. Yeh estimate hai.</div>`;
+
+    result.innerHTML=html;
+    window._detectedAddonTotal=parsed.total;
+    window._detectedAddons=parsed.detected;
+
+  }catch(err){
+    console.error('Addon detect error:',err);
+    spinner.textContent='';
+    result.innerHTML='<span style="color:rgba(255,255,255,0.4);font-size:0.8rem">⚠️ AI detection mein error aaya. Baker WhatsApp pe confirm karega.</span>';
+  }
+}
+
+// ─────────────────────────────────────
 // Submit order + WhatsApp modal
 // ─────────────────────────────────────
 async function submitOrder(){
@@ -868,7 +966,9 @@ async function submitOrder(){
       status:'Pending',
       advancePaid:0,
       remainingPaid:false,
-      paymentMethod:'pending', // will be updated when customer chooses
+      paymentMethod:'pending',
+      detectedAddons: window._detectedAddons||[],
+      addonExtraTotal: window._detectedAddonTotal||0,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     };
 
