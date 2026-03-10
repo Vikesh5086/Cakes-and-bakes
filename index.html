@@ -181,47 +181,7 @@ section{padding:6rem 2rem}
 .wa-skip:hover{border-color:rgba(255,255,255,0.5);color:#fff}
 .wa-modal-actions{display:flex;justify-content:center;gap:0.6rem;flex-wrap:wrap}
 
-/* ── ORDER TRACKING SECTION ── */
-#tracking{background:linear-gradient(155deg,#0a0704,#1a1208,#061410)}
-.tracking-inner{max-width:680px;margin:0 auto;text-align:center}
-.tracking-header .sec-label{color:var(--gold-light)}
-.tracking-header .sec-title{color:#fff}
-.tracking-header .sec-title em{color:var(--gold-light)}
-.tracking-header p{color:rgba(255,255,255,0.55);font-size:0.88rem;margin-top:0.8rem;margin-bottom:2rem;line-height:1.7}
-.track-form{display:flex;gap:0.7rem;flex-wrap:wrap;justify-content:center;margin-bottom:2rem}
-.track-input{flex:1;min-width:220px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:#fff;font-family:'Jost',sans-serif;font-size:0.88rem;padding:0.85rem 1.1rem;outline:none;border-radius:4px;transition:border-color 0.2s}
-.track-input::placeholder{color:rgba(255,255,255,0.3)}
-.track-input:focus{border-color:var(--gold)}
-.track-btn{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:#2c1a0e;font-family:'Jost',sans-serif;font-weight:600;font-size:0.8rem;letter-spacing:0.14em;text-transform:uppercase;padding:0.85rem 1.8rem;border:none;border-radius:4px;cursor:pointer;transition:all 0.2s}
-.track-btn:hover{opacity:0.9;transform:translateY(-2px)}
-.track-result{display:none;background:rgba(255,255,255,0.04);border:1px solid rgba(201,151,58,0.2);border-radius:12px;padding:1.8rem;text-align:left;animation:fadeUp 0.5s forwards}
-.track-result.show{display:block}
-.track-result-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid rgba(201,151,58,0.15)}
-.track-order-id{font-size:0.75rem;color:var(--gold);letter-spacing:0.1em;font-weight:600}
-.track-status-badge{font-size:0.75rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:20px;letter-spacing:0.08em;text-transform:uppercase}
-.badge-Pending{background:rgba(230,126,34,0.18);color:#e67e22;border:1px solid rgba(230,126,34,0.3)}
-.badge-Baking{background:rgba(41,128,185,0.18);color:#5dade2;border:1px solid rgba(41,128,185,0.3)}
-.badge-Ready{background:rgba(39,174,96,0.18);color:#2ecc71;border:1px solid rgba(39,174,96,0.3)}
-.badge-Delivered{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.15)}
-.track-customer-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:#fff;margin-bottom:0.25rem}
-.track-detail-row{display:flex;gap:0.5rem;align-items:baseline;font-size:0.82rem;color:rgba(255,255,255,0.55);margin-bottom:0.35rem}
-.track-detail-row strong{color:rgba(255,255,255,0.85);min-width:90px}
-/* Progress stepper */
-.track-stepper{display:flex;justify-content:space-between;align-items:flex-start;margin-top:1.4rem;position:relative}
-.track-stepper::before{content:'';position:absolute;top:16px;left:0;right:0;height:2px;background:rgba(255,255,255,0.1);z-index:0}
-.track-step{display:flex;flex-direction:column;align-items:center;gap:0.4rem;flex:1;position:relative;z-index:1}
-.track-step-dot{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:0.85rem;transition:all 0.3s}
-.track-step-label{font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);text-align:center}
-.track-step.done .track-step-dot{background:linear-gradient(135deg,var(--teal),var(--teal-light));border-color:var(--teal-light);color:#fff}
-.track-step.done .track-step-label{color:var(--teal-light)}
-.track-step.active .track-step-dot{background:linear-gradient(135deg,var(--gold),var(--gold-light));border-color:var(--gold-light);color:#2c1a0e;box-shadow:0 0 16px rgba(201,151,58,0.5)}
-.track-step.active .track-step-label{color:var(--gold-light)}
-.track-not-found{color:rgba(255,255,255,0.45);font-size:0.9rem;padding:2rem;text-align:center;display:none}
-.track-not-found.show{display:block}
-.track-loading{color:rgba(255,255,255,0.45);font-size:0.9rem;padding:1.5rem;text-align:center;display:none}
-.track-loading.show{display:block}
-.track-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin-right:0.5rem;vertical-align:middle}
-@keyframes spin{to{transform:rotate(360deg)}}
+
 
 /* ── REVIEWS ── */
 #reviews{background:var(--warm)}
@@ -296,7 +256,6 @@ footer a{color:var(--gold-light);text-decoration:none}
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="#menu">Menu</a></li>
     <li><a href="#order">Order</a></li>
-    <li><a href="#tracking">Track Order</a></li>
     <li><a href="#reviews">Reviews</a></li>
     <li><a href="#team">Team</a></li><li><a href="#contact">Contact</a></li>
   </ul>
@@ -326,7 +285,7 @@ footer a{color:var(--gold-light);text-decoration:none}
   <div class="hero-cta">
     <a class="btn-gold" href="#order">Place an Order</a>
     <a class="btn-outline" href="#gallery">View Gallery</a>
-    <a class="btn-outline" href="#tracking">🔍 Track My Order</a>
+
   </div>
   <div class="scroll-hint">↓ &nbsp; scroll to explore</div>
 </section>
@@ -533,7 +492,14 @@ footer a{color:var(--gold-light);text-decoration:none}
       <div class="form-row">
         <div class="form-group">
           <label>Pickup Date *</label>
-          <input type="date" id="pickupDate"/>
+          <input type="date" id="pickupDate" onchange="checkClosedDate()"/>
+          <div id="closedDateBanner" style="display:none;align-items:center;gap:0.5rem;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);border-radius:6px;padding:0.6rem 0.8rem;margin-top:0.5rem">
+            <span style="font-size:1rem">🚫</span>
+            <div>
+              <div style="font-size:0.82rem;font-weight:600;color:#e74c3c">Shop Closed on this date</div>
+              <div id="closedDateMsg" style="font-size:0.75rem;color:rgba(255,255,255,0.55)"></div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label>Occasion</label>
@@ -575,44 +541,7 @@ footer a{color:var(--gold-light);text-decoration:none}
   </div>
 </section>
 
-<!-- ══════════════════════════════════════
-     NEW: ORDER TRACKING SECTION
-══════════════════════════════════════ -->
-<section id="tracking">
-  <div class="tracking-inner">
-    <div class="tracking-header reveal">
-      <div class="sec-label">Know Your Status</div>
-      <h2 class="sec-title">Track Your <em>Order</em></h2>
-      <p>Enter your Order ID or registered phone number to see live status of your cake.</p>
-    </div>
-    <div class="track-form">
-      <input class="track-input" id="trackInput" type="text" placeholder="Order ID or Phone Number" onkeydown="if(event.key==='Enter') trackOrder()"/>
-      <button class="track-btn" onclick="trackOrder()">🔍 Track</button>
-    </div>
-    <div class="track-loading" id="trackLoading"><span class="track-spinner"></span> Searching for your order…</div>
-    <div class="track-not-found" id="trackNotFound">😕 No order found. Please check your Order ID or phone number.</div>
-    <div class="track-result" id="trackResult">
-      <div class="track-result-header">
-        <div>
-          <div class="track-order-id" id="trOrderId"></div>
-          <div class="track-customer-name" id="trName"></div>
-        </div>
-        <span class="track-status-badge" id="trBadge"></span>
-      </div>
-      <div class="track-detail-row"><strong>🎂 Flavour</strong> <span id="trFlavour"></span></div>
-      <div class="track-detail-row"><strong>⚖️ Weight</strong> <span id="trWeight"></span></div>
-      <div class="track-detail-row"><strong>📅 Pickup Date</strong> <span id="trDate"></span></div>
-      <div class="track-detail-row"><strong>🕐 Pickup Time</strong> <span id="trTime"></span></div>
-      <!-- Progress stepper -->
-      <div class="track-stepper" id="trStepper">
-        <div class="track-step" id="step-Pending"><div class="track-step-dot">📋</div><div class="track-step-label">Received</div></div>
-        <div class="track-step" id="step-Baking"><div class="track-step-dot">🔥</div><div class="track-step-label">Baking</div></div>
-        <div class="track-step" id="step-Ready"><div class="track-step-dot">✅</div><div class="track-step-label">Ready</div></div>
-        <div class="track-step" id="step-Delivered"><div class="track-step-dot">🎉</div><div class="track-step-label">Delivered</div></div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- REVIEWS -->
 <section id="reviews" style="background:var(--warm)">
@@ -783,8 +712,39 @@ const TIMES=['9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:0
     g.appendChild(chip);
   });
   // set min date to today
-  document.getElementById('pickupDate').min=todayISO();
+  const dateInput=document.getElementById('pickupDate');
+  dateInput.min=todayISO();
+  // Load closed dates and disable them
+  dateInput.addEventListener('change',checkClosedDate);
 })();
+
+// ─────────────────────────────────────
+// Closed Dates check
+// ─────────────────────────────────────
+let closedDatesMap={};
+async function loadClosedDates(){
+  try{
+    const snap=await db.collection('closedDates').get();
+    snap.docs.forEach(d=>{closedDatesMap[d.id]={reason:d.data().reason||'Shop Closed'};});
+  }catch(e){console.warn('Closed dates load failed',e);}
+}
+loadClosedDates();
+
+function checkClosedDate(){
+  const val=document.getElementById('pickupDate').value;
+  const banner=document.getElementById('closedDateBanner');
+  if(val&&closedDatesMap[val]){
+    banner.style.display='flex';
+    document.getElementById('closedDateMsg').textContent=closedDatesMap[val].reason;
+    document.getElementById('pickupDate').value='';
+    // Reset time chips
+    document.querySelectorAll('.time-chip').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('pickupTime').value='';
+    selectedTime='';
+  } else {
+    banner.style.display='none';
+  }
+}
 
 // ─────────────────────────────────────
 // Image preview
@@ -831,18 +791,23 @@ async function submitOrder(){
     const orderId=generateOrderId();
     let imageURL='';
 
-    // Upload image if provided (skip gracefully if Storage not enabled)
+    // Upload image if provided
     const fileInput=document.getElementById('cakeImage');
     if(fileInput.files&&fileInput.files[0]){
       try{
         const file=fileInput.files[0];
-        const ref=storage.ref(`cakeImages/${orderId}_${file.name}`);
-        await ref.put(file);
-        imageURL=await ref.getDownloadURL();
+        // Use a simple clean filename to avoid Storage path issues
+        const ext=file.name.split('.').pop().toLowerCase();
+        const ref=storage.ref('cakeImages/'+orderId+'.'+ext);
+        btn.textContent='📸 Uploading image…';
+        const snapshot=await ref.put(file);
+        imageURL=await snapshot.ref.getDownloadURL();
+        console.log('Image uploaded successfully:', imageURL);
       }catch(imgErr){
-        console.warn('Image upload skipped:', imgErr.message);
+        console.error('Image upload error:', imgErr.code, imgErr.message);
+        // Still save order but without image
         imageURL='';
-      };
+      }
     }
 
     const orderData={
@@ -859,11 +824,8 @@ async function submitOrder(){
 
     await db.collection('orders').doc(orderId).set(orderData);
 
-    // Show success — hide form fields only, heading stays
+    // Hide form, open WhatsApp modal directly — no extra success message shown
     document.getElementById('orderForm').style.display='none';
-    const sMsg=document.getElementById('successMsg');
-    sMsg.style.display='block';
-    sMsg.innerHTML=`✅ Order <strong>${orderId}</strong> placed successfully!<br><small style="opacity:0.7">Save this ID to track your order anytime.</small>`;
 
     // Open WhatsApp modal
     openWaModal(orderId, name, phone, flavour, weight, pickupDate, pickupTime);
@@ -906,78 +868,35 @@ document.getElementById('waModal').addEventListener('click',function(e){
 // ─────────────────────────────────────
 // ORDER TRACKING
 // ─────────────────────────────────────
-const STATUS_ORDER=['Pending','Baking','Ready','Delivered'];
 
-async function trackOrder(){
-  const q=document.getElementById('trackInput').value.trim();
-  if(!q){alert('Please enter an Order ID or phone number.');return;}
-
-  // reset UI
-  document.getElementById('trackResult').classList.remove('show');
-  document.getElementById('trackNotFound').classList.remove('show');
-  document.getElementById('trackLoading').classList.add('show');
-
-  try{
-    let order=null;
-
-    // Try exact Order ID first
-    const byId=await db.collection('orders').doc(q).get();
-    if(byId.exists){
-      order={id:byId.id,...byId.data()};
-    } else {
-      // Try phone number (normalize)
-      const phone=q.replace(/\D/g,'');
-      const snap=await db.collection('orders').where('phone','==',phone).orderBy('createdAt','desc').limit(1).get();
-      if(!snap.empty){
-        const d=snap.docs[0];
-        order={id:d.id,...d.data()};
-      }
-    }
-
-    document.getElementById('trackLoading').classList.remove('show');
-
-    if(!order){
-      document.getElementById('trackNotFound').classList.add('show');
-      return;
-    }
-
-    // Populate result card
-    const status=order.status||'Pending';
-    document.getElementById('trOrderId').textContent=order.orderId||order.id;
-    document.getElementById('trName').textContent=order.name||'—';
-    document.getElementById('trFlavour').textContent=order.flavour||'—';
-    document.getElementById('trWeight').textContent=order.weight||'—';
-    document.getElementById('trDate').textContent=formatDateDisplay(order.pickupDate);
-    document.getElementById('trTime').textContent=order.pickupTime||'—';
-
-    const badge=document.getElementById('trBadge');
-    badge.textContent=status;
-    badge.className=`track-status-badge badge-${status}`;
-
-    // Stepper
-    const statusIdx=STATUS_ORDER.indexOf(status);
-    STATUS_ORDER.forEach((s,i)=>{
-      const step=document.getElementById(`step-${s}`);
-      step.classList.remove('done','active');
-      if(i<statusIdx) step.classList.add('done');
-      else if(i===statusIdx) step.classList.add('active');
-    });
-
-    document.getElementById('trackResult').classList.add('show');
-
-  }catch(err){
-    console.error(err);
-    document.getElementById('trackLoading').classList.remove('show');
-    document.getElementById('trackNotFound').classList.add('show');
-  }
-}
 
 // ─────────────────────────────────────
 // Gallery load from Firestore
 // ─────────────────────────────────────
-function loadGallery(){
-  // Gallery photos are statically embedded — nothing to load
+async function loadGallery(){
+  try{
+    const snap=await db.collection('gallery').orderBy('uploadedAt','desc').get();
+    if(snap.empty) return; // Keep static gallery if Firestore has nothing
+    const grid=document.querySelector('.gallery-grid');
+    if(!grid) return;
+    // Prepend Firestore photos BEFORE static ones
+    const newCards=snap.docs.map(d=>{
+      const {url}=d.data();
+      return `<div class="gallery-card">
+        <div class="gallery-card-img">
+          <img src="${url}" alt="Gallery" loading="lazy" onerror="this.closest('.gallery-card').remove()"/>
+          <div class="gallery-card-overlay"></div>
+        </div>
+        <div class="gallery-card-body">
+          <div class="gallery-card-title">Custom Cake</div>
+          <span class="gallery-card-tag">Our Work</span>
+        </div>
+      </div>`;
+    }).join('');
+    grid.insertAdjacentHTML('afterbegin',newCards);
+  }catch(e){console.warn('Gallery load:',e);}
 }
+loadGallery();
 
 // ─────────────────────────────────────
 // Menu filter (static demo)
