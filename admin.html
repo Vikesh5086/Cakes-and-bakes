@@ -663,8 +663,11 @@ function buildCard(o,phoneCount){
       <div class="order-name">${escHtml(o.name||'—')}${isRepeat?'<span class="repeat-tag">🔁 Repeat</span>':''}</div>
       <div class="order-meta">📞 ${escHtml(o.phone||'—')} &nbsp;·&nbsp; 📅 ${escHtml(o.pickupDate||'—')} &nbsp;·&nbsp; 🕐 ${escHtml(o.pickupTime||'—')}</div>
     </div>
-    <div style="display:flex;align-items:center;gap:0.5rem">
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end">
+      ${!o.priceConfirmed?'<span style="font-size:0.62rem;background:rgba(201,151,58,0.18);border:1px solid rgba(201,151,58,0.5);color:#e8c47a;padding:0.15rem 0.5rem;border-radius:10px">⚠️ Price Unconfirmed</span>':''}
+      ${o.cakeAmount?`<span style="font-size:0.72rem;color:rgba(255,255,255,0.5)">₹${(o.cakeAmount).toLocaleString('en-IN')}</span>`:''}
       <span class="order-status s-${status}">${status}</span>
+      ${status==='Delivered'?'<span style="font-size:0.65rem;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.3);color:#2ecc71;padding:0.15rem 0.5rem;border-radius:10px">💚 Paid</span>':''}
       <span class="chevron">▼</span>
     </div>
   </div>
@@ -698,13 +701,23 @@ function buildCard(o,phoneCount){
     <!-- Payment -->
     <div class="payment-row">
       <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Total ₹</label>
-      <input class="advance-input" id="amt_${id}" type="number" placeholder="Cake price" value="${o.cakeAmount||''}" min="0" style="width:120px" title="Total cake price"/>
+      <input class="advance-input" id="amt_${id}" type="number" placeholder="Cake price" value="${o.cakeAmount||''}" min="0" style="width:120px" title="Total cake price (including add-ons)"/>
       <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Advance ₹</label>
       <input class="advance-input" id="adv_${id}" type="number" placeholder="Advance" value="${advance||''}" min="0" title="Advance paid"/>
       ${o.paymentMethod==='upi'?'<span style="font-size:0.72rem;background:rgba(26,92,82,0.2);border:1px solid rgba(26,92,82,0.4);color:#2e8b7a;padding:0.25rem 0.6rem;border-radius:12px">📲 UPI Advance</span>':o.paymentMethod==='cod'?'<span style="font-size:0.72rem;background:rgba(201,151,58,0.15);border:1px solid rgba(201,151,58,0.3);color:#c9973a;padding:0.25rem 0.6rem;border-radius:12px">💵 Pay at Delivery</span>':''}
+    </div>
+    <!-- Add-on price confirmation + remaining payment merged row -->
+    <div class="payment-row" style="flex-wrap:wrap;gap:0.6rem;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:0.8rem;border:1px solid ${o.priceConfirmed?'rgba(46,204,113,0.2)':'rgba(201,151,58,0.25)'}">
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.8rem;color:${o.priceConfirmed?'#2ecc71':'#e8c47a'}">
+        <input type="checkbox" id="priceConfirmed_${id}" ${o.priceConfirmed?'checked':''} style="accent-color:#2ecc71;width:15px;height:15px"/>
+        ${o.priceConfirmed?'✅ Final price confirmed with customer':'⚠️ Price NOT confirmed yet (add-ons may apply)'}
+      </label>
+      <span style="font-size:0.7rem;color:rgba(255,255,255,0.3);flex-basis:100%">Tick this after telling the customer the final price including any add-ons (custom design, tiers, fondant, etc.)</span>
+      ${o.cakeAmount&&o.advancePaid?`<span style="font-size:0.78rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:0.3rem 0.7rem;border-radius:6px;color:rgba(255,255,255,0.7)">Remaining: ₹${Math.max(0,(o.cakeAmount||0)-(o.advancePaid||0)).toLocaleString('en-IN')}</span>`:''}
       <button class="pay-toggle ${remPaid?'paid':''}" id="rem_${id}" onclick="toggleRemaining('${id}')">
-        ${remPaid?'✅ Remaining Paid':'💳 Mark Remaining Paid'}
+        ${remPaid?'✅ Full Payment Received':'💳 Mark Full Payment Received'}
       </button>
+      ${status==='Delivered'&&remPaid?`<span style="font-size:0.72rem;background:rgba(39,174,96,0.18);border:1px solid #2ecc71;color:#2ecc71;padding:0.25rem 0.7rem;border-radius:12px;font-weight:700">💚 Settled ₹${(o.cakeAmount||0).toLocaleString('en-IN')}</span>`:''}
     </div>
     <!-- WA -->
     <a class="wa-update-btn" href="${buildWaLink(o)}" target="_blank" id="waLink_${id}">
@@ -723,27 +736,26 @@ async function saveOrder(id){
   const note=(document.getElementById('note_'+id).value||'').trim();
   const advance=parseFloat(document.getElementById('adv_'+id).value)||0;
   const cakeAmount=parseFloat(document.getElementById('amt_'+id).value)||0;
+  const priceConfirmed=document.getElementById('priceConfirmed_'+id)?document.getElementById('priceConfirmed_'+id).checked:false;
   const o=allOrders.find(x=>(x.orderId||x.id)===id);
 
-  // If marking Delivered — auto mark remaining as paid too
-  const updateData={status,adminNote:note,advancePaid:advance,cakeAmount};
-  if(status==='Delivered' && o && !o.remainingPaid){
-    if(confirm('Mark remaining payment as received too?')){
-      updateData.remainingPaid=true;
-    }
+  const updateData={status,adminNote:note,advancePaid:advance,cakeAmount,priceConfirmed};
+
+  // AUTO: If marking Delivered — always auto-mark remaining as paid (no popup needed)
+  if(status==='Delivered'){
+    updateData.remainingPaid=true;
   }
 
   try{
     await db.collection('orders').doc(id).update(updateData);
-    if(o){o.status=status;o.adminNote=note;o.advancePaid=advance;if(updateData.remainingPaid)o.remainingPaid=true;}
+    if(o){
+      o.status=status; o.adminNote=note; o.advancePaid=advance; o.cakeAmount=cakeAmount; o.priceConfirmed=priceConfirmed;
+      if(status==='Delivered') o.remainingPaid=true;
+    }
     const ind=document.getElementById('saved_'+id);
     ind.style.display='inline'; setTimeout(()=>{ind.style.display='none';},2000);
-    const badge=document.querySelector(`#card_${id} .order-status`);
-    if(badge){badge.className=`order-status s-${status}`;badge.textContent=status;}
-    const wa=document.getElementById('waLink_'+id);
-    if(wa){const o2=allOrders.find(x=>(x.orderId||x.id)===id);if(o2)wa.href=buildWaLink(o2);}
     updateStats();
-    // Re-render so delivered orders move to collapsed section
+    // Re-render so delivered orders move to collapsed section + payment row updates
     renderOrders();
   }catch(err){console.error(err);alert('Save failed: '+err.message);}
 }
@@ -755,9 +767,8 @@ async function toggleRemaining(id){
   try{
     await db.collection('orders').doc(id).update({remainingPaid:nv});
     o.remainingPaid=nv;
-    const btn=document.getElementById('rem_'+id);
-    btn.textContent=nv?'✅ Remaining Paid':'💳 Mark Remaining Paid';
-    btn.className='pay-toggle'+(nv?' paid':'');
+    // Re-render to update the merged payment row properly
+    renderOrders();
   }catch(err){console.error(err);alert('Save failed: '+err.message);}
 }
 
