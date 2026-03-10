@@ -299,6 +299,7 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
       <button class="tab-btn-main" onclick="switchTab('reports',this)">📊 Reports</button>
       <button class="tab-btn-main" onclick="switchTab('gallery',this)">🖼️ Gallery</button>
       <button class="tab-btn-main" onclick="switchTab('closed',this)">🚫 Closed Dates</button>
+      <button class="tab-btn-main" onclick="switchTab('addons',this)">✨ Add-ons</button>
     </div>
   </div>
 
@@ -308,7 +309,7 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
       <div class="stat-card" onclick="setFilter('all',null)"><div class="stat-num" id="statTotal">–</div><div class="stat-label">Total</div></div>
       <div class="stat-card" onclick="setFilter('today',null)"><div class="stat-num" id="statToday">–</div><div class="stat-label">Today</div></div>
       <div class="stat-card" onclick="setFilter('pending',null)"><div class="stat-num" id="statPending">–</div><div class="stat-label">Pending</div></div>
-      <div class="stat-card" onclick="setFilter('delivered',null)"><div class="stat-num" id="statDelivered">–</div><div class="stat-label">Delivered</div></div>
+      <div class="stat-card" onclick="setFilter('ready',null)"><div class="stat-num" id="statReady">–</div><div class="stat-label">Ready</div></div>
     </div>
     <div class="filter-bar">
       <button class="filter-btn active" data-filter="today" onclick="setFilter('today',this)">📅 Today</button>
@@ -332,7 +333,7 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
       <div class="chart-section">
         <div class="chart-title">💰 Revenue Overview</div>
         <div class="revenue-big" id="totalRevenue">₹0</div>
-        <div class="revenue-sub">Total revenue: full amount for delivered orders + advance for active orders</div>
+        <div class="revenue-sub">Total advance collected (all time)</div>
         <div class="revenue-grid">
           <div class="rev-card"><div class="rev-num" id="revToday">₹0</div><div class="rev-label">Today</div></div>
           <div class="rev-card"><div class="rev-num" id="revWeek">₹0</div><div class="rev-label">This Week</div></div>
@@ -404,6 +405,34 @@ body{background:var(--bg);color:#e8ddd0;font-family:'Segoe UI',system-ui,sans-se
         <div class="chart-title" style="margin-bottom:0.8rem">📋 Currently Blocked Dates</div>
         <div id="closedDatesList"><div class="no-closed">No dates blocked</div></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD-ONS TAB ── -->
+<div id="tab-addons" class="tab-panel">
+  <div class="closed-wrap">
+    <div class="closed-section">
+      <div class="chart-title" style="margin-bottom:0.5rem">✨ Add-on Price List</div>
+      <p style="font-size:0.8rem;color:rgba(255,255,255,0.4);margin-bottom:1rem">
+        Yahan add-on items define karo. Jab customer cake ki photo upload karega, AI automatically detect karega ki kaunse add-ons hain aur unka total extra charge customer ko dikhayega.
+      </p>
+      <div class="closed-form" style="flex-wrap:wrap;gap:0.7rem">
+        <div class="closed-input-group" style="flex:2;min-width:160px">
+          <label>Add-on Item Name</label>
+          <input class="closed-reason-input" type="text" id="addonNameInput" placeholder="e.g. Real Flower, Gold Foil, Topper…" maxlength="60"/>
+        </div>
+        <div class="closed-input-group" style="flex:1;min-width:100px">
+          <label>Price per item (₹)</label>
+          <input class="closed-date-input" type="number" id="addonPriceInput" placeholder="50" min="0"/>
+        </div>
+        <button class="add-closed-btn" onclick="addAddon()" style="align-self:flex-end">➕ Add Item</button>
+      </div>
+    </div>
+    <div class="closed-section">
+      <div class="chart-title" style="margin-bottom:0.8rem">📋 Current Add-on List</div>
+      <p style="font-size:0.78rem;color:rgba(255,255,255,0.35);margin-bottom:0.8rem">AI inn items ko detect karega customer ki cake photo mein.</p>
+      <div id="addonsList"><div class="no-closed">No add-ons defined yet</div></div>
     </div>
   </div>
 </div>
@@ -526,6 +555,7 @@ function switchTab(tab, btn){
   if(tab==='reports') buildReports();
   if(tab==='gallery') loadAdminGallery();
   if(tab==='closed') loadClosedDates();
+  if(tab==='addons') loadAddons();
 }
 
 // ═══════════════════════════════════════════════
@@ -560,7 +590,7 @@ function updateStats(){
   document.getElementById('statTotal').textContent=allOrders.length;
   document.getElementById('statToday').textContent=allOrders.filter(o=>o.pickupDate===today).length;
   document.getElementById('statPending').textContent=pending;
-  document.getElementById('statDelivered').textContent=allOrders.filter(o=>o.status==='Delivered').length;
+  document.getElementById('statReady').textContent=allOrders.filter(o=>o.status==='Ready').length;
   // Pending badge in top bar
   const badge=document.getElementById('pendingBadge');
   if(pending>0){badge.style.display='inline';badge.textContent=pending+' pending';}
@@ -663,11 +693,8 @@ function buildCard(o,phoneCount){
       <div class="order-name">${escHtml(o.name||'—')}${isRepeat?'<span class="repeat-tag">🔁 Repeat</span>':''}</div>
       <div class="order-meta">📞 ${escHtml(o.phone||'—')} &nbsp;·&nbsp; 📅 ${escHtml(o.pickupDate||'—')} &nbsp;·&nbsp; 🕐 ${escHtml(o.pickupTime||'—')}</div>
     </div>
-    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end">
-      ${!o.priceConfirmed?'<span style="font-size:0.62rem;background:rgba(201,151,58,0.18);border:1px solid rgba(201,151,58,0.5);color:#e8c47a;padding:0.15rem 0.5rem;border-radius:10px">⚠️ Price Unconfirmed</span>':''}
-      ${o.cakeAmount?`<span style="font-size:0.72rem;color:rgba(255,255,255,0.5)">₹${(o.cakeAmount).toLocaleString('en-IN')}</span>`:''}
+    <div style="display:flex;align-items:center;gap:0.5rem">
       <span class="order-status s-${status}">${status}</span>
-      ${status==='Delivered'?'<span style="font-size:0.65rem;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.3);color:#2ecc71;padding:0.15rem 0.5rem;border-radius:10px">💚 Paid</span>':''}
       <span class="chevron">▼</span>
     </div>
   </div>
@@ -681,6 +708,16 @@ function buildCard(o,phoneCount){
       <div class="detail-item"><div class="detail-label">Cake Message</div><div class="detail-value">${escHtml(o.cakeMessage||'—')}</div></div>
       <div class="detail-item" style="grid-column:1/-1"><div class="detail-label">Design Details</div><div class="detail-value">${escHtml(o.designDetails||'—')}</div></div>
     </div>
+    ${(o.detectedAddons&&o.detectedAddons.length>0)?`
+    <div style="margin:0.8rem 0;background:rgba(201,151,58,0.1);border:1px solid rgba(201,151,58,0.35);border-radius:8px;padding:0.8rem 1rem">
+      <div style="font-size:0.75rem;font-weight:600;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem">✨ AI Detected Add-ons</div>
+      ${o.detectedAddons.map(a=>`<div style="font-size:0.8rem;color:rgba(255,255,255,0.7);display:flex;justify-content:space-between;padding:2px 0">
+        <span>${escHtml(a.name)} × ${a.count}</span><span style="color:var(--gold-light);font-weight:600">₹${a.count*a.price}</span>
+      </div>`).join('')}
+      <div style="border-top:1px solid rgba(201,151,58,0.3);margin-top:0.4rem;padding-top:0.4rem;display:flex;justify-content:space-between;font-weight:700;font-size:0.85rem;color:#fff">
+        <span>Total Extra</span><span style="color:var(--gold-light)">₹${o.addonExtraTotal||0}</span>
+      </div>
+    </div>`:''}
     ${imgBlock}
     <!-- Admin Note -->
     <div class="detail-label" style="margin-bottom:0.35rem">📝 Admin Note (internal)</div>
@@ -701,23 +738,13 @@ function buildCard(o,phoneCount){
     <!-- Payment -->
     <div class="payment-row">
       <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Total ₹</label>
-      <input class="advance-input" id="amt_${id}" type="number" placeholder="Cake price" value="${o.cakeAmount||''}" min="0" style="width:120px" title="Total cake price (including add-ons)"/>
+      <input class="advance-input" id="amt_${id}" type="number" placeholder="Cake price" value="${o.cakeAmount||''}" min="0" style="width:120px" title="Total cake price"/>
       <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Advance ₹</label>
       <input class="advance-input" id="adv_${id}" type="number" placeholder="Advance" value="${advance||''}" min="0" title="Advance paid"/>
       ${o.paymentMethod==='upi'?'<span style="font-size:0.72rem;background:rgba(26,92,82,0.2);border:1px solid rgba(26,92,82,0.4);color:#2e8b7a;padding:0.25rem 0.6rem;border-radius:12px">📲 UPI Advance</span>':o.paymentMethod==='cod'?'<span style="font-size:0.72rem;background:rgba(201,151,58,0.15);border:1px solid rgba(201,151,58,0.3);color:#c9973a;padding:0.25rem 0.6rem;border-radius:12px">💵 Pay at Delivery</span>':''}
-    </div>
-    <!-- Add-on price confirmation + remaining payment merged row -->
-    <div class="payment-row" style="flex-wrap:wrap;gap:0.6rem;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:0.8rem;border:1px solid ${o.priceConfirmed?'rgba(46,204,113,0.2)':'rgba(201,151,58,0.25)'}">
-      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.8rem;color:${o.priceConfirmed?'#2ecc71':'#e8c47a'}">
-        <input type="checkbox" id="priceConfirmed_${id}" ${o.priceConfirmed?'checked':''} style="accent-color:#2ecc71;width:15px;height:15px"/>
-        ${o.priceConfirmed?'✅ Final price confirmed with customer':'⚠️ Price NOT confirmed yet (add-ons may apply)'}
-      </label>
-      <span style="font-size:0.7rem;color:rgba(255,255,255,0.3);flex-basis:100%">Tick this after telling the customer the final price including any add-ons (custom design, tiers, fondant, etc.)</span>
-      ${o.cakeAmount&&o.advancePaid?`<span style="font-size:0.78rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:0.3rem 0.7rem;border-radius:6px;color:rgba(255,255,255,0.7)">Remaining: ₹${Math.max(0,(o.cakeAmount||0)-(o.advancePaid||0)).toLocaleString('en-IN')}</span>`:''}
       <button class="pay-toggle ${remPaid?'paid':''}" id="rem_${id}" onclick="toggleRemaining('${id}')">
-        ${remPaid?'✅ Full Payment Received':'💳 Mark Full Payment Received'}
+        ${remPaid?'✅ Remaining Paid':'💳 Mark Remaining Paid'}
       </button>
-      ${status==='Delivered'&&remPaid?`<span style="font-size:0.72rem;background:rgba(39,174,96,0.18);border:1px solid #2ecc71;color:#2ecc71;padding:0.25rem 0.7rem;border-radius:12px;font-weight:700">💚 Settled ₹${(o.cakeAmount||0).toLocaleString('en-IN')}</span>`:''}
     </div>
     <!-- WA -->
     <a class="wa-update-btn" href="${buildWaLink(o)}" target="_blank" id="waLink_${id}">
@@ -736,26 +763,27 @@ async function saveOrder(id){
   const note=(document.getElementById('note_'+id).value||'').trim();
   const advance=parseFloat(document.getElementById('adv_'+id).value)||0;
   const cakeAmount=parseFloat(document.getElementById('amt_'+id).value)||0;
-  const priceConfirmed=document.getElementById('priceConfirmed_'+id)?document.getElementById('priceConfirmed_'+id).checked:false;
   const o=allOrders.find(x=>(x.orderId||x.id)===id);
 
-  const updateData={status,adminNote:note,advancePaid:advance,cakeAmount,priceConfirmed};
-
-  // AUTO: If marking Delivered — always auto-mark remaining as paid (no popup needed)
-  if(status==='Delivered'){
-    updateData.remainingPaid=true;
+  // If marking Delivered — auto mark remaining as paid too
+  const updateData={status,adminNote:note,advancePaid:advance,cakeAmount};
+  if(status==='Delivered' && o && !o.remainingPaid){
+    if(confirm('Mark remaining payment as received too?')){
+      updateData.remainingPaid=true;
+    }
   }
 
   try{
     await db.collection('orders').doc(id).update(updateData);
-    if(o){
-      o.status=status; o.adminNote=note; o.advancePaid=advance; o.cakeAmount=cakeAmount; o.priceConfirmed=priceConfirmed;
-      if(status==='Delivered') o.remainingPaid=true;
-    }
+    if(o){o.status=status;o.adminNote=note;o.advancePaid=advance;if(updateData.remainingPaid)o.remainingPaid=true;}
     const ind=document.getElementById('saved_'+id);
     ind.style.display='inline'; setTimeout(()=>{ind.style.display='none';},2000);
+    const badge=document.querySelector(`#card_${id} .order-status`);
+    if(badge){badge.className=`order-status s-${status}`;badge.textContent=status;}
+    const wa=document.getElementById('waLink_'+id);
+    if(wa){const o2=allOrders.find(x=>(x.orderId||x.id)===id);if(o2)wa.href=buildWaLink(o2);}
     updateStats();
-    // Re-render so delivered orders move to collapsed section + payment row updates
+    // Re-render so delivered orders move to collapsed section
     renderOrders();
   }catch(err){console.error(err);alert('Save failed: '+err.message);}
 }
@@ -767,8 +795,9 @@ async function toggleRemaining(id){
   try{
     await db.collection('orders').doc(id).update({remainingPaid:nv});
     o.remainingPaid=nv;
-    // Re-render to update the merged payment row properly
-    renderOrders();
+    const btn=document.getElementById('rem_'+id);
+    btn.textContent=nv?'✅ Remaining Paid':'💳 Mark Remaining Paid';
+    btn.className='pay-toggle'+(nv?' paid':'');
   }catch(err){console.error(err);alert('Save failed: '+err.message);}
 }
 
@@ -846,22 +875,18 @@ function buildReports(){
   const weekAgo=new Date(now-7*86400000);
   const monthStart=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
 
-  // Revenue logic:
-  // Delivered orders  => count full cakeAmount (pura paisa aa gaya)
-  // Non-delivered     => count only advancePaid (sirf advance mila abhi tak)
-  function orderRevenue(o){
-    return o.status==='Delivered' ? (o.cakeAmount||0) : (o.advancePaid||0);
-  }
+  // Revenue — advance collected + full amount from delivered orders
+  const totalAdv=allOrders.reduce((s,o)=>s+(o.advancePaid||0),0);
+  const totalDeliveredFull=allOrders.filter(o=>o.status==='Delivered'&&o.remainingPaid).reduce((s,o)=>s+(o.cakeAmount||0),0);
+  const totalRevenue=totalAdv; // advance is main tracked metric
 
-  const totalRevenue=allOrders.reduce((s,o)=>s+orderRevenue(o),0);
-
-  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+orderRevenue(o),0);
+  const todayAdv=allOrders.filter(o=>o.pickupDate===today).reduce((s,o)=>s+(o.advancePaid||0),0);
   const weekAdv=allOrders.filter(o=>{
     if(!o.createdAt||!o.createdAt.toDate) return false;
     return o.createdAt.toDate()>=weekAgo;
-  }).reduce((s,o)=>s+orderRevenue(o),0);
-  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+orderRevenue(o),0);
-  const unpaidCount=allOrders.filter(o=>o.status!=='Delivered'&&(o.cakeAmount||0)>0&&!o.remainingPaid).length;
+  }).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const monthAdv=allOrders.filter(o=>(o.pickupDate||'')>=monthStart).reduce((s,o)=>s+(o.advancePaid||0),0);
+  const unpaidCount=allOrders.filter(o=>!o.remainingPaid&&o.status!=='Delivered').length;
 
   document.getElementById('totalRevenue').textContent='₹'+totalRevenue.toLocaleString('en-IN');
   document.getElementById('revToday').textContent='₹'+todayAdv.toLocaleString('en-IN');
@@ -1044,6 +1069,52 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
 // ═══════════════════════════════════════════════
 function escHtml(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ═══════════════════════════════════════════════
+// ADD-ONS MANAGEMENT
+// ═══════════════════════════════════════════════
+async function addAddon(){
+  const name=document.getElementById('addonNameInput').value.trim();
+  const price=parseInt(document.getElementById('addonPriceInput').value);
+  if(!name){alert('Item ka naam likho!');return;}
+  if(isNaN(price)||price<0){alert('Valid price daalo!');return;}
+  try{
+    const id=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+'_'+Date.now();
+    await db.collection('addonPrices').doc(id).set({
+      name, price,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('addonNameInput').value='';
+    document.getElementById('addonPriceInput').value='';
+    loadAddons();
+  }catch(err){console.error(err);alert('Failed: '+err.message);}
+}
+
+async function loadAddons(){
+  try{
+    const snap=await db.collection('addonPrices').orderBy('createdAt','asc').get();
+    const list=document.getElementById('addonsList');
+    if(snap.empty){list.innerHTML='<div class="no-closed">No add-ons defined yet</div>';return;}
+    list.innerHTML=snap.docs.map(d=>{
+      const {name,price}=d.data();
+      return `<div class="closed-item">
+        <div class="closed-item-info">
+          <div class="closed-item-date">✨ ${escHtml(name)}</div>
+          <div class="closed-item-reason">₹${price} per item — AI is detect karega customer photo mein</div>
+        </div>
+        <button class="closed-item-remove" onclick="removeAddon('${d.id}')">Remove</button>
+      </div>`;
+    }).join('');
+  }catch(err){console.error(err);}
+}
+
+async function removeAddon(id){
+  if(!confirm('Is add-on ko remove karo?')) return;
+  try{
+    await db.collection('addonPrices').doc(id).delete();
+    loadAddons();
+  }catch(err){console.error(err);alert('Failed: '+err.message);}
 }
 </script>
 </body>
