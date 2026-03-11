@@ -708,14 +708,16 @@ function buildCard(o,phoneCount){
       <div class="detail-item"><div class="detail-label">Cake Message</div><div class="detail-value">${escHtml(o.cakeMessage||'—')}</div></div>
       <div class="detail-item" style="grid-column:1/-1"><div class="detail-label">Design Details</div><div class="detail-value">${escHtml(o.designDetails||'—')}</div></div>
     </div>
-    ${(o.detectedAddons&&o.detectedAddons.length>0)?`
+    ${((o.selectedAddons&&o.selectedAddons.length>0)||(o.detectedAddons&&o.detectedAddons.length>0))?`
     <div style="margin:0.8rem 0;background:rgba(201,151,58,0.1);border:1px solid rgba(201,151,58,0.35);border-radius:8px;padding:0.8rem 1rem">
-      <div style="font-size:0.75rem;font-weight:600;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem">✨ AI Detected Add-ons</div>
-      ${o.detectedAddons.map(a=>`<div style="font-size:0.8rem;color:rgba(255,255,255,0.7);display:flex;justify-content:space-between;padding:2px 0">
-        <span>${escHtml(a.name)} × ${a.count}</span><span style="color:var(--gold-light);font-weight:600">₹${a.count*a.price}</span>
+      <div style="font-size:0.75rem;font-weight:600;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem">✨ Add-ons / Extra Items</div>
+      ${(o.selectedAddons||o.detectedAddons||[]).map(a=>`<div style="font-size:0.82rem;color:rgba(255,255,255,0.8);display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <span>• ${escHtml(a.name)}</span>
+        <span style="color:rgba(255,255,255,0.5)">${a.qty||a.count||1} × ₹${a.price}</span>
+        <span style="color:var(--gold-light);font-weight:600">₹${a.subtotal||(( a.qty||a.count||1)*a.price)}</span>
       </div>`).join('')}
-      <div style="border-top:1px solid rgba(201,151,58,0.3);margin-top:0.4rem;padding-top:0.4rem;display:flex;justify-content:space-between;font-weight:700;font-size:0.85rem;color:#fff">
-        <span>Total Extra</span><span style="color:var(--gold-light)">₹${o.addonExtraTotal||0}</span>
+      <div style="margin-top:0.5rem;padding-top:0.4rem;display:flex;justify-content:space-between;font-weight:700;font-size:0.88rem;color:#fff">
+        <span>Extra Charges Total</span><span style="color:var(--gold-light)">₹${o.addonExtraTotal||0}</span>
       </div>
     </div>`:''}
     ${imgBlock}
@@ -736,9 +738,35 @@ function buildCard(o,phoneCount){
       <button class="delete-btn" onclick="deleteOrder('${id}')">🗑️ Delete</button>
     </div>
     <!-- Payment -->
+    <div style="background:rgba(201,151,58,0.08);border:1px solid rgba(201,151,58,0.25);border-radius:8px;padding:0.7rem 1rem;margin-bottom:0.6rem;font-size:0.83rem">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.35rem">
+        <span style="color:rgba(255,255,255,0.6)">Cake Price</span>
+        <span style="color:#fff;font-weight:600">₹\${o.cakeAmount||'—'}</span>
+      </div>
+      \${(o.addonExtraTotal&&o.addonExtraTotal>0)?`
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.35rem">
+        <span style="color:rgba(255,255,255,0.6)">✨ Add-on Charges</span>
+        <span style="color:var(--gold-light);font-weight:600">+ ₹\${o.addonExtraTotal}</span>
+      </div>
+      <div style="border-top:1px solid rgba(201,151,58,0.3);padding-top:0.35rem;display:flex;justify-content:space-between">
+        <span style="color:#fff;font-weight:700">Grand Total</span>
+        <span style="color:var(--gold-light);font-weight:800;font-size:1rem">₹\${(o.cakeAmount||0)+(o.addonExtraTotal||0)}</span>
+      </div>`:''}
+    </div>
     <div class="payment-row">
-      <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Total ₹</label>
-      <input class="advance-input" id="amt_${id}" type="number" placeholder="Cake price" value="${o.cakeAmount||''}" min="0" style="width:120px" title="Total cake price"/>
+      <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Cake Price ₹</label>
+      <input class="advance-input" id="amt_\${id}" type="number" placeholder="Cake price" value="\${o.cakeAmount||\'\'}" min="0" style="width:120px" title="Cake base price" oninput="updateGrandTotal('${id}')" />
+      ${(o.addonExtraTotal&&o.addonExtraTotal>0)?`
+      <div id="grandTotal_${id}" style="background:rgba(201,151,58,0.12);border:1px solid rgba(201,151,58,0.35);border-radius:8px;padding:0.5rem 0.8rem;font-size:0.8rem;min-width:190px">
+        <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-bottom:0.25rem;text-transform:uppercase;letter-spacing:0.08em">Bill Breakdown</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.15rem"><span style="color:rgba(255,255,255,0.7)">🎂 Cake</span><span id="cakeDisp_${id}" style="color:#fff">₹${o.cakeAmount||0}</span></div>
+        ${(o.selectedAddons||[]).map(a=>`<div style="display:flex;justify-content:space-between;margin-bottom:0.1rem"><span style="color:rgba(255,255,255,0.6);font-size:0.76rem">✨ ${a.name} \xd7${a.qty}</span><span style="color:var(--gold-light);font-size:0.76rem">₹${a.subtotal}</span></div>`).join('')}
+        <div style="border-top:1px solid rgba(201,151,58,0.3);margin-top:0.25rem;padding-top:0.25rem;display:flex;justify-content:space-between">
+          <span style="color:#fff;font-weight:700;font-size:0.82rem">TOTAL</span>
+          <span id="grandTotalDisp_${id}" style="color:var(--gold-light);font-weight:800;font-size:0.9rem">₹${(o.cakeAmount||0)+(o.addonExtraTotal||0)}</span>
+        </div>
+      </div>
+      `:''}
       <label style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.1em">Advance ₹</label>
       <input class="advance-input" id="adv_${id}" type="number" placeholder="Advance" value="${advance||''}" min="0" title="Advance paid"/>
       ${o.paymentMethod==='upi'?'<span style="font-size:0.72rem;background:rgba(26,92,82,0.2);border:1px solid rgba(26,92,82,0.4);color:#2e8b7a;padding:0.25rem 0.6rem;border-radius:12px">📲 UPI Advance</span>':o.paymentMethod==='cod'?'<span style="font-size:0.72rem;background:rgba(201,151,58,0.15);border:1px solid rgba(201,151,58,0.3);color:#c9973a;padding:0.25rem 0.6rem;border-radius:12px">💵 Pay at Delivery</span>':''}
@@ -756,6 +784,19 @@ function buildCard(o,phoneCount){
 }
 
 function toggleCard(id){document.getElementById('card_'+id).classList.toggle('expanded');}
+
+function updateGrandTotal(id){
+  const cakeInput=document.getElementById('amt_'+id);
+  if(!cakeInput) return;
+  const cakeVal=parseFloat(cakeInput.value)||0;
+  const o=allOrders.find(x=>(x.orderId||x.id)===id);
+  if(!o) return;
+  const addonExtra=o.addonExtraTotal||0;
+  const cakeDisp=document.getElementById('cakeDisp_'+id);
+  const grandDisp=document.getElementById('grandTotalDisp_'+id);
+  if(cakeDisp) cakeDisp.textContent='₹'+cakeVal;
+  if(grandDisp) grandDisp.textContent='₹'+(cakeVal+addonExtra);
+}
 
 // Save status + note + advance together
 async function saveOrder(id){
