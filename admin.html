@@ -487,15 +487,19 @@ async function loginAdmin(){
     await auth.signInWithEmailAndPassword(email, pass);
     // onAuthStateChanged will call showDashboard()
   }catch(err){
-    console.error(err);
-    if(err.code==='auth/user-not-found'||err.code==='auth/wrong-password'||err.code==='auth/invalid-credential'){
+    console.error('Login error:', err.code, err.message);
+    if(['auth/user-not-found','auth/wrong-password','auth/invalid-credential','auth/invalid-login-credentials'].includes(err.code)){
       errEl.textContent='❌ Wrong email or password.';
     } else if(err.code==='auth/invalid-email'){
-      errEl.textContent='❌ Invalid email address.';
+      errEl.textContent='❌ Invalid email format.';
+    } else if(err.code==='auth/user-disabled'){
+      errEl.textContent='❌ This account has been disabled.';
     } else if(err.code==='auth/too-many-requests'){
-      errEl.textContent='⚠️ Too many attempts. Try again later or reset password.';
+      errEl.textContent='⚠️ Too many attempts. Wait a few minutes.';
+    } else if(err.code==='auth/network-request-failed'){
+      errEl.textContent='⚠️ Network error. Check internet connection.';
     } else {
-      errEl.textContent='Error: '+err.message;
+      errEl.textContent='Error: '+err.code+' — '+err.message;
     }
     btn.disabled=false; btn.textContent='🔐 Login';
   }
