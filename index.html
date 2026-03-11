@@ -1089,7 +1089,12 @@ function openWaModal(orderId, name, phone, flavour, weight, pickupDate, pickupTi
   document.getElementById('waLinkCOD').href=waUrl;
 
   // ── Build bill summary ──
-  window._billData = {orderId, name, phone, flavour, weight, pickupDate, pickupTime, addons, addonTotal};
+  // Extract cake price from flavour string e.g. "Butterscotch (₹299)"
+  const cakePriceMatch = flavour.match(/₹(\d+)/);
+  const cakePrice = cakePriceMatch ? parseInt(cakePriceMatch[1]) : 0;
+  const grandTotal = cakePrice + addonTotal;
+
+  window._billData = {orderId, name, phone, flavour, weight, pickupDate, pickupTime, addons, addonTotal, cakePrice, grandTotal};
   let summaryHtml = `
     <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem"><span style="color:rgba(255,255,255,0.6)">🎂 Cake</span><span style="color:#fff">${flavour} · ${weight}</span></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem"><span style="color:rgba(255,255,255,0.6)">📅 Pickup</span><span style="color:#fff">${formatDateDisplay(pickupDate)} at ${pickupTime}</span></div>`;
@@ -1098,8 +1103,11 @@ function openWaModal(orderId, name, phone, flavour, weight, pickupDate, pickupTi
     addons.forEach(a=>{
       summaryHtml+=`<div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.7)">${a.name} ×${a.qty}</span><span style="color:var(--gold-light)">₹${a.subtotal}</span></div>`;
     });
-    summaryHtml+=`<div style="border-top:1px solid rgba(201,151,58,0.25);margin-top:0.35rem;padding-top:0.3rem;display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Extra Charges</span><span style="color:var(--gold-light);font-weight:600">₹${addonTotal}</span></div>`;
-    summaryHtml+=`<div style="display:flex;justify-content:space-between;margin-top:0.15rem"><span style="color:#fff;font-weight:700">Total (Cake + Add-ons)</span><span style="color:var(--gold-light);font-weight:800">₹${addonTotal} + Cake Price</span></div>`;
+    summaryHtml+=`<div style="border-top:1px solid rgba(201,151,58,0.25);margin-top:0.35rem;padding-top:0.3rem;display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">🎂 Cake Price</span><span style="color:#fff">₹${cakePrice}</span></div>`;
+    summaryHtml+=`<div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">✨ Extra Add-on Charges</span><span style="color:var(--gold-light)">₹${addonTotal}</span></div>`;
+    summaryHtml+=`<div style="display:flex;justify-content:space-between;margin-top:0.2rem;padding-top:0.3rem;border-top:1.5px solid rgba(201,151,58,0.4)"><span style="color:#fff;font-weight:700;font-size:0.88rem">💰 TOTAL AMOUNT</span><span style="color:var(--gold-light);font-weight:800;font-size:1rem">₹${grandTotal}</span></div>`;
+  } else {
+    summaryHtml+=`<div style="display:flex;justify-content:space-between;margin-top:0.2rem;padding-top:0.3rem;border-top:1px solid rgba(201,151,58,0.25)"><span style="color:#fff;font-weight:700">💰 Total Amount</span><span style="color:var(--gold-light);font-weight:800">₹${cakePrice||'—'}</span></div>`;
   }
   document.getElementById('billSummaryContent').innerHTML=summaryHtml;
   document.getElementById('billSummaryBox').style.display='block';
@@ -1115,49 +1123,120 @@ function downloadBill(){
   const d = window._billData || {};
   const addons = d.addons || [];
   const addonTotal = d.addonTotal || 0;
-  let addonLines = '';
-  if(addons.length>0){
-    addonLines = '\n\n--- ADD-ONS / EXTRA ITEMS ---';
-    addons.forEach(a=>{ addonLines+=`\n  ${a.name}  x${a.qty}  = Rs.${a.subtotal}`; });
-    addonLines+=`\n  Extra Charges Total      = Rs.${addonTotal}`;
+  const cakePrice = d.cakePrice || 0;
+  const grandTotal = d.grandTotal || cakePrice;
+
+  // Build rows
+  const rows = [];
+  rows.push({label: '📋 Order ID', value: d.orderId||'—', bold: false});
+  rows.push({label: '👤 Customer', value: d.name||'—', bold: false});
+  rows.push({label: '📞 Phone', value: d.phone||'—', bold: false});
+  rows.push({label: '🎂 Cake', value: (d.flavour||'—') + ' · ' + (d.weight||'—'), bold: false});
+  rows.push({label: '📅 Pickup', value: (d.pickupDate||'—') + ' at ' + (d.pickupTime||'—'), bold: false});
+  rows.push({divider: true});
+  rows.push({label: '🎂 Cake Price', value: 'Rs.' + cakePrice, bold: false});
+  if(addons.length > 0){
+    rows.push({section: '✨ ADD-ONS'});
+    addons.forEach(a=>{
+      rows.push({label: '  ' + a.name + ' x' + a.qty, value: 'Rs.' + a.subtotal, bold: false});
+    });
+    rows.push({label: 'Extra Add-on Charges', value: 'Rs.' + addonTotal, bold: false});
+    rows.push({divider: true});
   }
-  const billText = `
-============================================
-        CAKES & BAKES - ORDER RECEIPT
-   Gourav Sachdeva, Ferozepur | 7973809274
-============================================
+  rows.push({label: '💰 TOTAL AMOUNT', value: 'Rs.' + grandTotal, bold: true, highlight: true});
 
-Order ID   : ${d.orderId||'—'}
-Customer   : ${d.name||'—'}
-Phone      : ${d.phone||'—'}
+  // Canvas setup
+  const W = 520;
+  const PADDING = 30;
+  const ROW_H = 36;
+  const HEADER_H = 120;
+  const FOOTER_H = 70;
+  const H = HEADER_H + rows.length * ROW_H + FOOTER_H + 40;
 
---- ORDER DETAILS ---
-Cake Flavour  : ${d.flavour||'—'}
-Weight        : ${d.weight||'—'}
-Pickup Date   : ${d.pickupDate||'—'}
-Pickup Time   : ${d.pickupTime||'—'}
-${addonLines}
+  const canvas = document.createElement('canvas');
+  canvas.width = W * 2; canvas.height = H * 2; // retina
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
 
---------------------------------------------
-  * Final cake price will be confirmed by
-    the baker and shared on WhatsApp.
-  * Extra add-on charges: Rs.${addonTotal}
---------------------------------------------
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#1a0e04');
+  bg.addColorStop(1, '#082018');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
 
-    Thank you for ordering with us! 🎂
-    We'll keep you updated on WhatsApp.
-============================================
-`.trim();
+  // Gold border
+  ctx.strokeStyle = 'rgba(201,151,58,0.6)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(12, 12, W-24, H-24);
 
-  const blob = new Blob([billText], {type:'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `CakesAndBakes_${d.orderId||'Order'}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Header
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c9973a';
+  ctx.font = 'bold 22px serif';
+  ctx.fillText('🎂 Cakes & Bakes', W/2, 48);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('Gourav Sachdeva, Ferozepur  |  +91 79738 09274', W/2, 68);
+  // divider
+  ctx.strokeStyle = 'rgba(201,151,58,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PADDING, 82); ctx.lineTo(W-PADDING, 82); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('ORDER RECEIPT', W/2, 100);
+  ctx.beginPath(); ctx.moveTo(PADDING, 110); ctx.lineTo(W-PADDING, 110); ctx.stroke();
+
+  // Rows
+  let y = HEADER_H + 10;
+  ctx.textAlign = 'left';
+  rows.forEach(row => {
+    if(row.divider){
+      ctx.strokeStyle = 'rgba(201,151,58,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PADDING, y+4); ctx.lineTo(W-PADDING, y+4); ctx.stroke();
+      y += 18;
+      return;
+    }
+    if(row.section){
+      ctx.fillStyle = 'rgba(201,151,58,0.7)';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(row.section, PADDING, y + 14);
+      y += ROW_H - 8;
+      return;
+    }
+    if(row.highlight){
+      // highlight bg
+      ctx.fillStyle = 'rgba(201,151,58,0.15)';
+      ctx.fillRect(PADDING-6, y, W - (PADDING-6)*2, ROW_H - 4);
+    }
+    ctx.fillStyle = row.bold ? '#f0c040' : row.label.startsWith('  ') ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.8)';
+    ctx.font = row.bold ? 'bold 14px sans-serif' : '13px sans-serif';
+    ctx.fillText(row.label, PADDING, y + 20);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = row.bold ? '#f0c040' : row.label.includes('Cake Price') || row.label.includes('TOTAL') ? '#c9973a' : 'rgba(255,255,255,0.9)';
+    ctx.font = row.bold ? 'bold 14px sans-serif' : '13px sans-serif';
+    ctx.fillText(row.value, W - PADDING, y + 20);
+    ctx.textAlign = 'left';
+    y += ROW_H;
+  });
+
+  // Footer
+  ctx.strokeStyle = 'rgba(201,151,58,0.3)';
+  ctx.beginPath(); ctx.moveTo(PADDING, y+8); ctx.lineTo(W-PADDING, y+8); ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('Thank you for ordering with us! 🎂', W/2, y + 28);
+  ctx.fillText('We\'ll keep you updated on WhatsApp.', W/2, y + 44);
+
+  // Download
+  const link = document.createElement('a');
+  link.download = 'CakesAndBakes_' + (d.orderId||'Order') + '.png';
+  link.href = canvas.toDataURL('image/png');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 
