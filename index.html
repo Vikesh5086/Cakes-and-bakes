@@ -248,6 +248,62 @@ footer a{color:var(--gold-light);text-decoration:none}
 </style>
 </head>
 <body>
+<!-- Floating Particles Canvas -->
+<canvas id="floatCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.45"></canvas>
+<script>
+(function(){
+  const canvas = document.getElementById('floatCanvas');
+  const ctx = canvas.getContext('2d');
+  const emojis = ['🎂','🍰','🧁','🍓','🍒','⭐','✨','🌸','🎀','🍫'];
+  let W, H, particles = [];
+
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function rand(min, max){ return Math.random()*(max-min)+min; }
+
+  function createParticle(){
+    return {
+      x: rand(0, W),
+      y: rand(-100, H+100),
+      emoji: emojis[Math.floor(Math.random()*emojis.length)],
+      size: rand(14, 28),
+      speedY: rand(-0.3, -0.8),
+      speedX: rand(-0.2, 0.2),
+      opacity: rand(0.3, 0.7),
+      wobble: rand(0, Math.PI*2),
+      wobbleSpeed: rand(0.005, 0.02),
+      wobbleAmt: rand(0.5, 1.5)
+    };
+  }
+
+  for(let i=0; i<35; i++){
+    const p = createParticle();
+    p.y = rand(0, H);
+    particles.push(p);
+  }
+
+  function animate(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach((p, i) => {
+      p.wobble += p.wobbleSpeed;
+      p.x += p.speedX + Math.sin(p.wobble)*p.wobbleAmt;
+      p.y += p.speedY;
+      if(p.y < -50){ 
+        particles[i] = createParticle();
+        particles[i].y = H + 20;
+      }
+      ctx.globalAlpha = p.opacity;
+      ctx.font = p.size+'px serif';
+      ctx.fillText(p.emoji, p.x, p.y);
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+</script>
 
 <!-- NAV -->
 <nav>
@@ -530,18 +586,23 @@ footer a{color:var(--gold-light);text-decoration:none}
       <div class="form-group">
         <label>Reference Image (Optional)</label>
         <div class="upload-zone">
-          <input type="file" id="cakeImage" accept="image/*" onchange="previewImages(this); detectAddons(this)"/>
+          <input type="file" id="cakeImage" accept="image/*" onchange="previewImages(this)"/>
           <div class="upload-text">📸 <strong>Tap to upload</strong> or drag here<br/>JPG, PNG up to 5MB</div>
           <div class="preview-grid" id="previewGrid"></div>
         </div>
-        <!-- AI Add-on Detection Result Box -->
-        <div id="addonDetectBox" style="display:none;margin-top:0.8rem;background:rgba(201,151,58,0.12);border:1px solid rgba(201,151,58,0.4);border-radius:8px;padding:1rem 1.1rem;">
-          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem">
-            <span style="font-size:1.1rem">✨</span>
-            <span style="font-weight:600;color:var(--gold-light);font-size:0.88rem;letter-spacing:0.05em">AI Add-on Detection</span>
-            <span id="addonDetectSpinner" style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-left:auto">🔍 Analysing photo…</span>
+      </div>
+
+      <!-- Add-on Selector -->
+      <div class="form-group" id="addonSelectorGroup">
+        <label>✨ Add-ons / Extra Items (Optional)</label>
+        <div id="addonRows" style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:0.8rem"></div>
+        <button type="button" onclick="addAddonRow()" style="background:transparent;border:1px dashed rgba(201,151,58,0.5);color:var(--gold-light);padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-size:0.85rem;width:100%">+ Add Item</button>
+        <div id="addonTotalBox" style="display:none;margin-top:0.8rem;background:rgba(201,151,58,0.12);border:1px solid rgba(201,151,58,0.4);border-radius:8px;padding:0.8rem 1rem;">
+          <div id="addonBillBreakdown" style="font-size:0.83rem;color:rgba(255,255,255,0.8);line-height:2"></div>
+          <div style="border-top:1px solid rgba(201,151,58,0.4);margin-top:0.5rem;padding-top:0.5rem;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-weight:600;color:#fff">Total Extra Charges:</span>
+            <span id="addonGrandTotal" style="font-weight:700;color:var(--gold-light);font-size:1.1rem">&#8377;0</span>
           </div>
-          <div id="addonDetectResult" style="font-size:0.83rem;color:rgba(255,255,255,0.75);line-height:1.7"></div>
         </div>
       </div>
       <button class="submit-btn" onclick="submitOrder()">🎂 Confirm My Order</button>
@@ -667,6 +728,13 @@ footer a{color:var(--gold-light);text-decoration:none}
     <div style="font-size:2.5rem;margin-bottom:0.3rem">🎉</div>
     <h3 style="margin-bottom:0.3rem">Order Placed Successfully!</h3>
     <div class="wa-order-id" id="waOrderIdDisplay"></div>
+
+    <!-- Bill Summary (shown always) -->
+    <div id="billSummaryBox" style="display:none;background:rgba(201,151,58,0.08);border:1px solid rgba(201,151,58,0.3);border-radius:10px;padding:0.8rem 1rem;margin:0.8rem 0 0.5rem;font-size:0.82rem;text-align:left">
+      <div style="font-weight:700;color:var(--gold-light);margin-bottom:0.5rem">🧾 Your Order Summary</div>
+      <div id="billSummaryContent"></div>
+      <button onclick="downloadBill()" style="margin-top:0.6rem;width:100%;background:rgba(201,151,58,0.15);border:1px solid rgba(201,151,58,0.4);color:var(--gold-light);border-radius:8px;padding:0.5rem;font-size:0.8rem;cursor:pointer;font-weight:600">⬇️ Download Bill / Receipt</button>
+    </div>
 
     <!-- STEP 1: Choose payment -->
     <div id="payStep1">
@@ -816,96 +884,97 @@ function previewImages(input){
 }
 
 // ─────────────────────────────────────
-// AI Add-on Detection via Cloudflare Worker
+// Add-on Selector System
 // ─────────────────────────────────────
 
-// ⚠️ Yahan apna Cloudflare Worker URL daalo deploy karne ke baad:
-const ADDON_WORKER_URL = 'https://fragrant-mud-02abcakes-addon-detector.vikesh6381.workers.dev';
+let _addonOptions = [];
 
-async function detectAddons(input){
-  if(!input.files||!input.files[0]) return;
-  const file=input.files[0];
-
-  const box=document.getElementById('addonDetectBox');
-  const spinner=document.getElementById('addonDetectSpinner');
-  const result=document.getElementById('addonDetectResult');
-  box.style.display='block';
-  spinner.textContent='🔍 Analysing photo…';
-  result.innerHTML='';
-
-  // Check if worker URL is configured
-  if(ADDON_WORKER_URL.includes('YOUR_WORKER')){
-    spinner.textContent='';
-    result.innerHTML='<span style="color:rgba(255,255,255,0.45);font-size:0.8rem">⚙️ Worker URL configure nahi hua abhi. Baker add-ons WhatsApp pe confirm karega.</span>';
-    return;
-  }
-
+async function loadAddonOptions(){
+  if(_addonOptions.length > 0) return;
   try{
-    // 1. Fetch add-on list from Firestore
-    const snap=await db.collection('addonPrices').get();
-    if(snap.empty){
-      spinner.textContent='';
-      result.innerHTML='<span style="color:rgba(255,255,255,0.4);font-size:0.8rem">ℹ️ Shop ne abhi koi add-on define nahi kiya.</span>';
-      return;
-    }
-    const addonList=snap.docs.map(d=>({name:d.data().name, price:d.data().price}));
+    const snap = await db.collection('addonPrices').get();
+    _addonOptions = snap.docs.map(d => ({
+      id: d.id, name: d.data().name, price: Number(d.data().price)
+    }));
+  } catch(e){ _addonOptions = []; }
+}
 
-    // 2. Convert image to base64
-    const base64=await new Promise((res,rej)=>{
-      const r=new FileReader();
-      r.onload=()=>res(r.result.split(',')[1]);
-      r.onerror=()=>rej(new Error('Read failed'));
-      r.readAsDataURL(file);
-    });
-    const mediaType=file.type||'image/jpeg';
+async function addAddonRow(){
+  await loadAddonOptions();
+  const container = document.getElementById('addonRows');
+  const rowId = 'addon_row_' + Date.now();
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.style.cssText = 'display:flex;gap:0.5rem;align-items:center;background:rgba(255,255,255,0.04);border:1px solid rgba(201,151,58,0.2);border-radius:8px;padding:0.5rem 0.7rem';
 
-    // 3. Call Cloudflare Worker (which calls Claude safely)
-    const resp=await fetch(ADDON_WORKER_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ imageBase64:base64, mediaType, addonList })
-    });
-
-    if(!resp.ok){
-      throw new Error('Worker responded with '+resp.status);
-    }
-
-    const parsed=await resp.json();
-
-    spinner.textContent='';
-
-    if(!parsed.detected||parsed.detected.length===0){
-      result.innerHTML=`<div style="color:#2ecc40;font-size:0.85rem">✅ Koi extra add-on detect nahi hua — standard pricing apply hogi.</div>`;
-      return;
-    }
-
-    // Build breakdown UI
-    let html=`<div style="color:var(--gold-light);font-weight:600;margin-bottom:0.5rem;font-size:0.82rem">⚠️ Ye add-ons detect hue — extra charges lagenge:</div>`;
-    html+=`<table style="width:100%;border-collapse:collapse;font-size:0.82rem">`;
-    html+=`<tr style="color:rgba(255,255,255,0.4);font-size:0.75rem"><td style="padding:3px 0">Item</td><td style="text-align:center">Qty</td><td style="text-align:right">Price</td></tr>`;
-    for(const item of parsed.detected){
-      const subtotal=item.count*item.price;
-      html+=`<tr style="border-top:1px solid rgba(255,255,255,0.07)">
-        <td style="padding:4px 0">✨ ${item.name}</td>
-        <td style="text-align:center">${item.count} × ₹${item.price}</td>
-        <td style="text-align:right;color:var(--gold-light);font-weight:600">₹${subtotal}</td>
-      </tr>`;
-    }
-    html+=`<tr style="border-top:2px solid rgba(201,151,58,0.4)">
-      <td colspan="2" style="padding:6px 0;font-weight:600;color:#fff">Total Extra</td>
-      <td style="text-align:right;font-weight:700;color:var(--gold-light);font-size:1rem">₹${parsed.total}</td>
-    </tr></table>`;
-    html+=`<div style="margin-top:0.7rem;font-size:0.75rem;color:rgba(255,255,255,0.4);font-style:italic">* Final price baker confirm karega. Yeh estimate hai.</div>`;
-
-    result.innerHTML=html;
-    window._detectedAddonTotal=parsed.total;
-    window._detectedAddons=parsed.detected;
-
-  }catch(err){
-    console.error('Addon detect error:',err);
-    spinner.textContent='';
-    result.innerHTML='<span style="color:rgba(255,255,255,0.4);font-size:0.8rem">⚠️ AI detection mein error aaya. Baker WhatsApp pe confirm karega.</span>';
+  let optionsHtml = '<option value="">-- Item Select Karo --</option>';
+  for(const a of _addonOptions){
+    optionsHtml += `<option value="${a.id}" data-price="${a.price}" data-name="${a.name}">${a.name} (₹${a.price}/item)</option>`;
   }
+  if(_addonOptions.length === 0){
+    optionsHtml = '<option value="">Shop ne koi add-on define nahi kiya</option>';
+  }
+
+  row.innerHTML = `
+    <select onchange="recalcAddons()" style="flex:2;background:rgba(0,0,0,0.4);color:#fff;border:1px solid rgba(201,151,58,0.3);border-radius:6px;padding:0.4rem 0.5rem;font-size:0.85rem">${optionsHtml}</select>
+    <input type="number" min="1" max="99" value="1" onchange="recalcAddons()" placeholder="Qty" style="flex:0.6;background:rgba(0,0,0,0.4);color:#fff;border:1px solid rgba(201,151,58,0.3);border-radius:6px;padding:0.4rem 0.5rem;font-size:0.85rem;text-align:center"/>
+    <span style="flex:0.8;color:var(--gold-light);font-weight:600;font-size:0.85rem;text-align:right" class="row-subtotal">₹0</span>
+    <button type="button" onclick="document.getElementById('${rowId}').remove();recalcAddons();" style="background:rgba(255,50,50,0.15);border:1px solid rgba(255,80,80,0.3);color:#ff6b6b;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.85rem">✕</button>
+  `;
+  container.appendChild(row);
+  recalcAddons();
+}
+
+function recalcAddons(){
+  const rows = document.querySelectorAll('#addonRows > div');
+  const items = [];
+  let grandTotal = 0;
+
+  rows.forEach(row => {
+    const sel = row.querySelector('select');
+    const qtyInput = row.querySelector('input[type=number]');
+    const subtotalEl = row.querySelector('.row-subtotal');
+    const qty = parseInt(qtyInput ? qtyInput.value : 1) || 0;
+
+    if(sel && sel.value){
+      const opt = sel.options[sel.selectedIndex];
+      const price = Number(opt.getAttribute('data-price')) || 0;
+      const name = opt.getAttribute('data-name') || '';
+      const subtotal = price * qty;
+      grandTotal += subtotal;
+      if(subtotalEl) subtotalEl.textContent = '₹' + subtotal;
+      if(qty > 0 && name) items.push({ name, qty, price, subtotal });
+    } else {
+      if(subtotalEl) subtotalEl.textContent = '₹0';
+    }
+  });
+
+  const totalBox = document.getElementById('addonTotalBox');
+  const breakdown = document.getElementById('addonBillBreakdown');
+  const grandEl = document.getElementById('addonGrandTotal');
+
+  if(items.length > 0){
+    totalBox.style.display = 'block';
+    let html = '<table style="width:100%;border-collapse:collapse"><tr style="color:rgba(255,255,255,0.45);font-size:0.78rem"><td>Item</td><td style="text-align:center">Qty</td><td style="text-align:center">Rate</td><td style="text-align:right">Amount</td></tr>';
+    items.forEach(it => {
+      html += `<tr style="border-top:1px solid rgba(255,255,255,0.07)">
+        <td style="padding:4px 0">✨ ${it.name}</td>
+        <td style="text-align:center">${it.qty}</td>
+        <td style="text-align:center">₹${it.price}</td>
+        <td style="text-align:right;color:var(--gold-light);font-weight:600">₹${it.subtotal}</td>
+      </tr>`;
+    });
+    html += '</table>';
+    breakdown.innerHTML = html;
+    grandEl.textContent = '₹' + grandTotal;
+  } else {
+    totalBox.style.display = 'none';
+    breakdown.innerHTML = '';
+    grandEl.textContent = '₹0';
+  }
+
+  window._selectedAddons = items;
+  window._addonExtraTotal = grandTotal;
 }
 
 // ─────────────────────────────────────
@@ -967,8 +1036,8 @@ async function submitOrder(){
       advancePaid:0,
       remainingPaid:false,
       paymentMethod:'pending',
-      detectedAddons: window._detectedAddons||[],
-      addonExtraTotal: window._detectedAddonTotal||0,
+      selectedAddons: window._selectedAddons||[],
+      addonExtraTotal: window._addonExtraTotal||0,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     };
 
@@ -997,15 +1066,43 @@ function openWaModal(orderId, name, phone, flavour, weight, pickupDate, pickupTi
 
   const clean=phone.replace(/\D/g,'');
   const num=clean.length===10?'91'+clean:clean;
+  const addons = window._selectedAddons || [];
+  const addonTotal = window._addonExtraTotal || 0;
+  let addonMsg = '';
+  if(addons.length > 0){
+    addonMsg = `\n\n✨ *Add-ons Selected:*\n`;
+    addons.forEach(a => {
+      addonMsg += `  • ${a.name} × ${a.qty} = ₹${a.subtotal}\n`;
+    });
+    addonMsg += `💰 *Extra Charges: ₹${addonTotal}*`;
+  }
+
   const msg=`🎂 *Cakes & Bakes – Order Confirmation*\n\nHi ${name}! Your order has been received 🎉\n\n` +
     `📋 *Order ID:* ${orderId}\n` +
     `🎂 *Cake:* ${flavour} · ${weight}\n` +
-    `📅 *Pickup:* ${formatDateDisplay(pickupDate)} at ${pickupTime}\n\n` +
-    `We'll get baking and keep you updated! 🙏\n\n_Cakes & Bakes by Gourav Sachdeva, Ferozepur_`;
+    `📅 *Pickup:* ${formatDateDisplay(pickupDate)} at ${pickupTime}` +
+    addonMsg +
+    `\n\nWe'll get baking and keep you updated! 🙏\n\n_Cakes & Bakes by Gourav Sachdeva, Ferozepur_`;
 
   const waUrl=`https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
   document.getElementById('waLink').href=waUrl;
   document.getElementById('waLinkCOD').href=waUrl;
+
+  // ── Build bill summary ──
+  window._billData = {orderId, name, phone, flavour, weight, pickupDate, pickupTime, addons, addonTotal};
+  let summaryHtml = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem"><span style="color:rgba(255,255,255,0.6)">🎂 Cake</span><span style="color:#fff">${flavour} · ${weight}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem"><span style="color:rgba(255,255,255,0.6)">📅 Pickup</span><span style="color:#fff">${formatDateDisplay(pickupDate)} at ${pickupTime}</span></div>`;
+  if(addons.length > 0){
+    summaryHtml += `<div style="border-top:1px solid rgba(201,151,58,0.2);margin:0.35rem 0;padding-top:0.3rem;color:rgba(255,255,255,0.5);font-size:0.74rem">✨ ADD-ONS</div>`;
+    addons.forEach(a=>{
+      summaryHtml+=`<div style="display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.7)">${a.name} ×${a.qty}</span><span style="color:var(--gold-light)">₹${a.subtotal}</span></div>`;
+    });
+    summaryHtml+=`<div style="border-top:1px solid rgba(201,151,58,0.25);margin-top:0.35rem;padding-top:0.3rem;display:flex;justify-content:space-between"><span style="color:rgba(255,255,255,0.6)">Extra Charges</span><span style="color:var(--gold-light);font-weight:600">₹${addonTotal}</span></div>`;
+    summaryHtml+=`<div style="display:flex;justify-content:space-between;margin-top:0.15rem"><span style="color:#fff;font-weight:700">Total (Cake + Add-ons)</span><span style="color:var(--gold-light);font-weight:800">₹${addonTotal} + Cake Price</span></div>`;
+  }
+  document.getElementById('billSummaryContent').innerHTML=summaryHtml;
+  document.getElementById('billSummaryBox').style.display='block';
 
   // Reset to step 1
   document.getElementById('payStep1').style.display='block';
@@ -1013,6 +1110,57 @@ function openWaModal(orderId, name, phone, flavour, weight, pickupDate, pickupTi
   document.getElementById('payStep3').style.display='none';
   document.getElementById('waModal').classList.add('open');
 }
+
+function downloadBill(){
+  const d = window._billData || {};
+  const addons = d.addons || [];
+  const addonTotal = d.addonTotal || 0;
+  let addonLines = '';
+  if(addons.length>0){
+    addonLines = '\n\n--- ADD-ONS / EXTRA ITEMS ---';
+    addons.forEach(a=>{ addonLines+=`\n  ${a.name}  x${a.qty}  = Rs.${a.subtotal}`; });
+    addonLines+=`\n  Extra Charges Total      = Rs.${addonTotal}`;
+  }
+  const billText = `
+============================================
+        CAKES & BAKES - ORDER RECEIPT
+   Gourav Sachdeva, Ferozepur | 7973809274
+============================================
+
+Order ID   : ${d.orderId||'—'}
+Customer   : ${d.name||'—'}
+Phone      : ${d.phone||'—'}
+
+--- ORDER DETAILS ---
+Cake Flavour  : ${d.flavour||'—'}
+Weight        : ${d.weight||'—'}
+Pickup Date   : ${d.pickupDate||'—'}
+Pickup Time   : ${d.pickupTime||'—'}
+${addonLines}
+
+--------------------------------------------
+  * Final cake price will be confirmed by
+    the baker and shared on WhatsApp.
+  * Extra add-on charges: Rs.${addonTotal}
+--------------------------------------------
+
+    Thank you for ordering with us! 🎂
+    We'll keep you updated on WhatsApp.
+============================================
+`.trim();
+
+  const blob = new Blob([billText], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `CakesAndBakes_${d.orderId||'Order'}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+
 
 function showUpiQR(){
   document.getElementById('payStep1').style.display='none';
